@@ -1,4 +1,4 @@
-\documentclass[a4paper,11pt]{book}
+\documentclass[a4paper,10pt]{book}
 \usepackage{listings}
 \usepackage[utf8]{inputenc}
 \usepackage[spanish]{babel}
@@ -126,7 +126,7 @@ pdfproducer = {pdflatex}
    }
 \newcommand{\bigrule}{\titlerule[0.5mm]}
 
-%Para conseguir que en las páginas en blanco no ponga cabecerass
+%Para conseguir que en las páginas en blanco no ponga cabeceras
 \makeatletter
 \def\clearpage{%
   \ifvmode
@@ -148,29 +148,27 @@ pdfproducer = {pdflatex}
 \begin{document}
 \input{portada/portada}
 \input{prefacios/prefacio}
-%\frontmatter
-%\tableofcontents
+% \frontmatter
+\tableofcontents
 %\listoffigures
 %\listoftables
-%
-%\mainmatter
+% \mainmatter
 %\setlength{\parskip}{5pt}
 
 \input{capitulos/Introduccion}
+\input{capitulos/EstadoDelArte}
 \input{capitulos/EspecificacionRequisitos}
+\input{capitulos/Implementacion}
+\input{capitulos/TrabajosFuturos.tex}
 \input{capitulos/Conclusion}
 
-%%\nocite{*}
-%\bibliography{bibliografia/bibliografia}\addcontentsline{toc}{chapter}{Bibliografía}
-%\bibliographystyle{miunsrturl}
-%
+% \nocite{*}
+% \bibliography{bibliografia/bibliografia}\addcontentsline{toc}{chapter}{Bibliografía}
+% \bibliographystyle{miunsrturl}
+
 %\appendix
-%\input{apendices/manual_usuario/manual_usuario}
-%%\input{apendices/paper/paper}
 %\input{glosario/entradas_glosario}
 % \addcontentsline{toc}{chapter}{Glosario}
 % \printglossary
-\chapter*{}
-\thispagestyle{empty}
 
 \end{document}

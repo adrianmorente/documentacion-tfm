@@ -1,0 +1,57 @@
+\chapter{Especificación y requisitos}
+
+Se desea disponer de una plataforma robótica extensible, libre y abierta; que permita una buena extensibilidad de nuevas características mediante software. Además, se propone la implementación de un uso concreto para esta plataforma. En este capítulo listaremos los distintos requisitos y puntualizaremos sobre cada una de las decisiones tomadas para satisfacerlos.
+
+\section{Requisitos generales}
+
+\subsection{Licencias}
+
+Se trata de un proyecto de software \textbf{libre} y de \textbf{código abierto}. Para ello, se publica bajo una licencia \textit{GPLv3} en un repositorio público en \textit{Github}.\\
+
+Además de \textit{Github}, existen otras alternativas de repositorios públicos que permiten utilizar \textit{git} para control de versiones (como \textit{Bitbucket} y \textit{Gitlab} entre otras). El porqué de utilizar \textit{Github} es meramente por aprovechar la licencia \textit{premium} que se provee a los estudiantes de la UGR simplemente por matricularse; permitiendo así tener algunos repositorios privados a nuestra disposición.\\
+
+Con el código público y la licencia elegida, cualquier usuario podrá descargar el software, compilarlo, ejecutarlo e incluso añadir modificaciones al código para ser probadas e integradas en la plataforma final. Para ello, en el propio repositorio se pone a disposición del interesado un fichero \textbf{README.md} con los pasos necesarios.
+
+
+\subsection{Especificaciones}
+
+El término \textit{plataforma robótica} puede ser demasiado amplio para su manejo, por lo que en esta subsección definiremos algunos de los puntos más interesantes.
+
+\subsubsection{Extensibilidad}
+
+Ya que se desea disponer de una plataforma extensible cuyo comportamiento y características puedan ampliarse a través de software, se debe dotar al robot de una arquitectura que permita este crecimiento.\\
+
+TODO: explicar orquestación de servicios y mensajería.
+
+\subsubsection{Conectividad}
+
+Como plataforma inteligente y conectada que utiliza el paradigma del \textbf{\textit{edge computing}}, sabemos que el robot ha de ser un dispositivo embebido con conexiones al exterior como Bluetooth y/o WiFi. Que éstas vengan implícitas en la plataforma hardware utilizada facilitará mucho el trabajo, ya que nos ahorramos el hecho de tener que soldar componentes. Utilizaremos para ésto una \textit{Raspberry Pi Model 3 B}, que pese a no ser el último modelo de la marca \textit{Raspberry}, es la que tengo a disposición en casa. Además, satisface las necesidades de conectividad que comentábamos.\\
+
+Por otro lado, en cuanto al requisito de computación en el borde, la plataforma deberá contener uno o más servicios que establezcan la comunicación con el servidor, además de enviar y recibir mensajes. Esta conexión con el servidor se realizará utilizando el protocolo \textbf{\textit{Websockets}}, ya que 
+
+TODO: (explicar bondades de WS). 
+
+\subsubsection{Interfaz y experiencia de usuario}
+
+El robot contará con una pantalla táctil con la que proveerá la información necesaria al usuario (en función de las aplicaciones que necesite o decidan integrarse en el robot). Cualquier pantalla táctil que permita su conexión con la \textit{Raspberry} debería servir, por lo que no entraremos a detallar limitaciones hardware. Para la interacción del usuario, el sistema contará con una \textbf{aplicación embebida de entorno gráfico} que permita el uso del robot. La tecnología usada por esta aplicación, se ha decidido que sea el framework de \textbf{\textit{Qt}}, que pese a tener modalidades de licencias de pago, permite un uso \textit{open source}. Además, se trata de una tecnología con una amplia comunidad, una documentación muy rica y un gran soporte para dispositivos embebidos. Por otro lado, dispongo de amplia experiencia con dicha herramienta, lo que agiliza enormemente el tiempo de desarrollo.\\
+
+Otra característica que sería de agradecer en la plataforma tiene que ver con la \textbf{reproducción de sonidos} que faciliten la comunicación con el usuario, así como la \textbf{accesibilidad}. No todo el mundo goza de capacidad visual o simplemente no están habituados a interfaces táctiles, por lo que emitir alertas y sonidos descriptivos facilitaría llegar a más usuarios de forma plena y satisfactoria.
+
+\subsubsection{Gestión experta y mantenimiento}
+
+Como hemos comentado en secciones anteriores, el robot goza de hardware provisto de conectividad inalámbrica. En este punto haremos uso de esta característica para ofrecer un método de mantenimiento, supervisión y gestión del robot, por parte de alguna "mano experta".\\
+
+De forma similar a lo que comentamos sobre \textit{Websockets} en el apartado de \textbf{Conectividad}, aquí necesitaremos de un método de administración de los distintos robots existentes desde un portal web externo a ellos. Un técnico encargado de gestionar los robots, accederá a una web alojada en el servidor externo que realiza \textit{la computación en el borde}. Ésta será una web sencilla utilizando el protocolo común de \textit{HTTPS}.\\
+
+Inicialmente, este portal web servirá para listar los dispositivos conectados (es decir, los robots que han sido provisionados con el software de \textit{Lazarillo} y se encuentran en funcionamiento), pero posteriormente permitirá enviar acciones remotas desde el servidor al robot (como reinicios, actualizaciones de software, acciones concretas a realizar por el robot, etc.).
+
+\subsubsection{Movilidad}
+
+El factor determinante que diferenciará a nuestro robot de un sistema empotrado inmóvil será la capacidad de desplazarse por el entorno. Ya sea para un uso u otro, el robot deberá venir dotado de un sistema hardware que le permita avanzar por el plano, conteniendo elementos como motores y ruedas o cintas móviles.\\
+
+Además, si se desea que el robot sea \textbf{inteligente} y reconozca el entorno por el que se está moviendo, deberá dotarse de algún sistema de reconocimiento como \textbf{sensores de proximidad} o \textbf{cámaras}. Respecto a esto, si queremos seguir el paradigma de \textit{edge computing} como venimos comentando, el procesamiento de estas señales podría realizarse en el servidor en lugar de en el propio robot, lo que también liberaría a la plataforma hardware del robot de una buena parte de la computación.\\
+
+
+\section{Objetivos opcionales}
+
+(TODO: listar cosas que podrían hacerse para las que no habrá tiempo.)

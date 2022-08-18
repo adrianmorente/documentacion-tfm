@@ -1,0 +1,55 @@
+\chapter{Implementación}
+
+En este capítulo comentaremos a fondo las decisiones tomadas que hemos comentado previamente en base a la especificación, además de describir las implementaciones propuestas con las distintas tecnologías utilizadas.\\
+
+Pondremos el foco no solo en el software implícito en el robot sino también a los componentes desarrollados externos a él, pero que también conforman la arquitectura completa de la plataforma.\\
+
+Las ideas que por una razón u otra no hayan llegado a implementarse a tiempo, serán definidas en profundidad en apartados posteriores.
+
+\section{Sistema operativo}
+
+Para dotar a la \textit{Raspberry} de un sistema operativo ligero, extensible y hecho a medida, decidimos obviar sistemas ya existentes como \textit{Raspbian} (S.O. de culto para la mayoría de usuarios de este computador) (TODO: ref a Raspbian) y confeccionar el nuestro propio a través de una herramienta libre y gratuita como es \textit{The Yocto Project} (TODO: ref a yocto).
+
+\subsubsection{¿Por qué omitimos un sistema operativo que ya existe?}
+
+Pues bien, la respuesta es fácil. \textit{Raspbian} es un sistema operativo de uso general que permite utilizar la \textit{Raspberry} como cualquier ordenador normal, ya sea para ofimática, desarrollo de software, consumo de recursos multimedia o incluso videojuegos. Esto provoca que el sistema operativo en cuestión venga con demasiado \textit{bloatware} (TODO: poner en el glosario) preinstalado de base; y llevaría más tiempo modificar la imagen de \textit{Raspbian} para que no contenga todo el software no deseado que confeccionar un sistema operativo a medida.\\
+
+Además, deseamos que el robot solo muestre una aplicación embebida en pantalla en lugar de un entorno de escritorio normal, por lo que podemos prescindir de este entorno completo y configurar nuestro nuevo sistema para que solo muestre una aplicación y ahorre tiempo en el arranque.\\
+
+
+\section{Arquitectura de Lazarillo}
+
+En esta sección enumeraremos los distintos servicios y módulos específicos creados para Lazarillo y describiremos el propósito para el que han sido programados.\\
+
+(TODO: insertar diagrama de arquitectura)
+
+\subsection{Servicios internos}
+
+Veamos ahora una breve explicación del propósito que satisfacen los módulos software internos del robot.
+
+\subsubsection{lazarillo-hmi}
+
+Se trata de la aplicación que muestra la interfaz táctil al usuario.
+
+\subsubsection{messages-definition}
+
+Este módulo no es en sí un servicio sino una \textbf{librería} donde se definen los mensajes que utilizan internamente el resto de servicios para comunicarse.
+
+\subsubsection{service-base}
+
+Este módulo define el esqueleto abstracto de cada uno de los servicios del robot. Heredando el comportamiento de esta librería, cada uno de los nuevos servicios se ahorran procedimientos rutinarios como instanciar la conexión con la base de datos y el bróker de mensajería.
+
+\subsubsection{web-gateway}
+
+Este servicio es el \textit{puerto de entrada} a Lazarillo. Realiza la comunicación mediante \textit{Websockets} con \textbf{\textit{lazarillo-admin}}, el portal web a través del cual un técnico puede administrar los distintos robots. \textit{\textbf{Web-gateway}} actúa como intérprete de los mensajes provenientes del \textit{socket} y los publica en la mensajería interna del robot (basada en \textit{Redis}) para informar al resto de servicios de cualquier acción emitida por el servidor.
+
+
+\subsection{Componentes externos}
+
+Como venimos comentando, además del software embebido en el robot, disponemos de otros módulos externos a él que completan la plataforma.
+
+\subsubsection{lazarillo-admin}
+
+Este es el título asignado al servicio web que tanto venimos comentando a lo largo de este documento, a través del cual podemos visualizar y gestionar los distintos robots conectados al servidor.\\
+
+Está programado con \textit{NodeJS} (TODO: ref a node) y utiliza librerías para hacer las veces de servidor con \textit{HTTPS} (para la web) y con \textit{Websockets} (para la comunicación con el robot).\\

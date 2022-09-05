@@ -27,7 +27,11 @@ TODO: explicar orquestación de servicios y mensajería.
 
 Como plataforma inteligente y conectada que utiliza el paradigma del \textbf{\textit{edge computing}}, sabemos que el robot ha de ser un dispositivo embebido con conexiones al exterior como Bluetooth y/o WiFi. Que éstas vengan implícitas en la plataforma hardware utilizada facilitará mucho el trabajo, ya que nos ahorramos el hecho de tener que soldar componentes. Utilizaremos para ésto una \textit{Raspberry Pi Model 3 B}, que pese a no ser el último modelo de la marca \textit{Raspberry}, es la que tengo a disposición en casa. Además, satisface las necesidades de conectividad que comentábamos.\\
 
-Por otro lado, en cuanto al requisito de computación en el borde, la plataforma deberá contener uno o más servicios que establezcan la comunicación con el servidor, además de enviar y recibir mensajes. Esta conexión con el servidor se realizará utilizando el protocolo \textbf{\textit{Websockets}}, ya que 
+Por otro lado, en cuanto al requisito de computación en el borde, la plataforma deberá contener uno o más servicios que permitan la comunicación con el exterior, de una forma u otra, además de enviar y recibir mensajes. Para realizar esta conexión se utilizará el protocolo \textit{WebSocket} \cite{ws_protocol}, alternativa a \textit{HTTP} \cite{http_protocol} y más conveniente en este caso por las siguientes razones:
+
+\begin{itemize}
+    \item 
+\end{itemize}
 
 TODO: (explicar bondades de WS). 
 

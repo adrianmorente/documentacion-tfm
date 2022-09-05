@@ -83,8 +83,63 @@ Por otro lado, cuando se habla de robótica suele salir a colación \textit{\tex
 Para un uso modesto, quizá el aspecto más interesante de utilizar \textit{ROS} puede resultar la comunicación entre distintos \textbf{nodos}. Podemos entender como \textit{nodo} cada una de las partes independientes del robot que colabora con el resto. Para un robot hipotético que se desliza sobre el suelo y que mueve los brazos para agarrar cosas, podríamos distinguir entre sus nodos la plataforma móvil, las manos, las cámaras que observan el entorno y un largo etcétera. En cuanto a cómo se comunican estos nodos, podemos plantearlo como un problema de comunicación de distintos servicios cualesquiera. Veamos esto en el siguiente apartado.\\
 
 
-\subsubsection{¿Cómo se comunican los nodos de un robot}
+\subsubsection{¿Cómo se comunican los nodos de un robot?}
 
-Como anticipábamos, podemos entender cada \textbf{nodo} como un servicio independiente que se comunica con el resto a través de algún mecanismo integrado en el sistema operativo.
+Como anticipábamos, podemos entender cada \textbf{nodo} como un servicio independiente que se comunica con el resto a través de algún mecanismo integrado en el sistema operativo.\\
 
-TODO: Alternativas: IPC, PubSub, etc.
+Imaginemos que tenemos un nodo \textbf{principal} que representa el cerebro del robot, y que por tanto es el encargado de ordenar al resto de nodos (\textit{secundarios}) la siguiente acción que deben realizar. Si cada uno de estos elementos es un servicio independiente como hemos dicho, es necesario un método de comunicación para que el principal notifique a los demás mediante un mensaje. Si buscamos métodos de \textbf{comunicación entre procesos}, seguramente el primer resultado que obtengamos sea \textbf{\textit{IPC}}, cuyas siglas (\textit{Inter-Process Communication}) en castellano significan exactamente ``comunicación entre procesos'' \cite{ipc}. En la siguiente figura podemos ver una comparativa de las dos formas de comunicación posibles en este ámbito: \textit{Shared memory} y \textit{Message Passing}\\
+
+\begin{figure}[h]
+	\centering
+	\includegraphics[width=0.7\textwidth]{imagenes/ipc.png}
+	\caption{Formas de comunicación \textit{IPC} - Fuente: \textit{GeeksforGeeks.org} \cite{ipc}}
+\end{figure}
+
+El método de comunicación mediante \textit{IPC} más inmediato es el uso de \textit{Shared memory} o \textbf{memoria compartida}, que consiste literalmente en reservar un espacio de la memoria lógica para que todos los procesos cooperantes hagan uso de un espacio común donde leer y escribir variables compartidas. Si bien ésto es ágil y rápido, mi experiencia trabajando con esta metodología en proyectos grandes es que si no se tiene especial cuidado a la hora de diseñar qué datos intervienen y su procedencia, a largo plazo ésto produce un gran \textbf{acoplamiento} en el software involucrado.\\
+
+Por otro lado, \textit{Message Passing} (\textbf{paso de mensajes}) consiste en habilitar un búfer compartido a nivel de kernel en el que pueden escribir y leer los procesos interesados. La diferencia con la \textbf{memoria compartida} es que en ésta se pueden utilizar directamente las variables del lenguaje de programación escogido, mientras que con \textbf{paso de mensajes} lo que se hace es escribir objetos completos con un identificador de mensaje. Así, lo que hacen los servicios para leer información es iterar sobre dicho búfer buscando si los identificadores de mensaje presentes son de su interés o no. Con esta aproximación, es sencillo enviar mensajes \textit{1:1} (de un servicio a otro) o \textit{1:n} (\textit{multicast} o \textit{broadcast}) entre servicios concretos.\\
+
+Dejando \textit{IPC} a un lado y volviendo a \textit{ROS}, que antes mencionábamos que es un set de librerías y herramientas bien amplio, destaquemos ahora que también contiene formas de comunicación entre nodos, e incluso su documentación contiene tutoriales sobre cómo empezar a trabajar en ello (como encontramos en \cite{ros-tutorial}, donde enseñan cómo partir con un modelo \textbf{\textit{publicación-suscripción}} en lenguaje \textit{C++}).\\
+
+Este modelo también conocido como \textit{PubSub} se trata de una forma de \textbf{mensajería asíncrona} para integrar microservicios en una arquitectura software. O como detallan en \textit{Amazon AWS} \cite{whats-pubsub}: ``para usar en arquitecturas \textit{serverless} o basadas en \textbf{microservicios}''.\\
+
+El funcionamiento de éste es simple y permite implementar \textbf{arquitecturas basadas en eventos}:
+
+\begin{itemize}
+	\item Un \textbf{servicio} se suscribe a un \textbf{tópico}, como lo haría un usuario de la televisión por cable a los canales cuyo contenido le interese.
+	\item Otro servicio \textbf{publicará mensajes} en dicho tópico, de forma que el primero los recibirá inmediatamente.
+	\item Esta mecánica se generaliza con tantos servicios y tópicos como sea necesario.
+\end{itemize}
+
+\begin{figure}[h]
+	\centering
+	\includegraphics[width=0.7\textwidth]{imagenes/pubsub.png}
+	\caption{Mecánica \textit{PubSub}. Dos servicios publican sobre un mismo tópico para que otros tres reciban su contenido inmediatamente - Fuente: \textit{Amazon AWS} \cite{whats-pubsub}}
+\end{figure}
+
+En mi experiencia, el modelo \textit{PubSub} es el más cómodo de utilizar una vez que el proyecto ya está preparado para trabajar en él y añadir funcionalidades, además de gozar de una gran \textbf{escalabilidad}, ya que añadir nuevos mensajes, tópicos y servicios es totalmente transparente y práctico. Bien es cierto que para no reinventar la rueda, es conveniente utilizar librerías que ya implementen este paradigma, como \textit{Redis} o \textit{ROS}, que mencionábamos antes.\\
+
+Si bien hemos visto que \textit{ROS} puede servir para cualquiera que quiera iniciarse en la robótica, \textit{Redis} es una herramienta muy interesante a tener en cuenta para intercomunicar los distintos nodos o procesos que tendrán lugar en el dispositivo. Se trata de un \textbf{almacén de estructuras de datos} que puede actuar como base de datos, caché o bróker de mensajes; que se mantiene en memoria principal, por lo que es volátil a la par que muy rápida \cite{redis}. Además, implementa el paradigma \textit{PubSub}, permitiendo realizar suscripciones a tópicos y/o publicar mensajes sobre ellos. Automáticamente, los programas que utilicen alguna librería de \textit{Redis} son notificados cuando un mensaje es publicado en un tópico al que están suscritos \cite{redis-pubsub}.\\
+
+Dejemos aquí la enumeración y descripción de los distintos módulos software que nos pueden servir para programar el susodicho robot. En apartados posteriores estudiaremos cada una de las decisiones tomadas al respecto.\\
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

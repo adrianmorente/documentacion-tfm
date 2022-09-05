@@ -1,31 +1,40 @@
 \chapter{Especificación y requisitos}
 
-Se desea disponer de una plataforma robótica extensible, libre y abierta; que permita una buena extensibilidad de nuevas características mediante software. Además, se propone la implementación de un uso concreto para esta plataforma. En este capítulo listaremos los distintos requisitos y puntualizaremos sobre cada una de las decisiones tomadas para satisfacerlos.
+Pasemos ahora a describir de la forma más detallada posible cada uno de los requerimientos que conforman la idea del proyecto, planteando del mismo modo alternativas o aspectos que sería de agrado incluir, si bien no forman parte de la especificación inicialmente. Las decisiones tomadas, así como las soluciones implementadas, serán detalladas en el capítulo siguiente, si bien a lo largo de éste mismo pueden surgir necesidades cuya solución se detalle directamente.\\
+
+Se desea disponer de una plataforma robótica extensible, libre y abierta; que permita una buena ampliación de nuevas características mediante software. Además, se propone la implementación de un uso concreto para esta plataforma, y es que dicho robot sirva como \textbf{guía de caminos} para sus usuarios finales en un \textbf{entorno controlado}. En este capítulo listaremos los distintos requisitos y puntualizaremos sobre cada una de las decisiones tomadas para satisfacerlos.\\
 
 \section{Requisitos generales}
 
+Los requerimientos aquí listados comprenderán cosas tanto de procedimientos para el desempeño del proyecto (como pueden ser la visibilidad y su legislación) hasta las funcionalidades más concretas que se esperan del producto final.\\
+
 \subsection{Licencias}
 
-Se trata de un proyecto de software \textbf{libre} y de \textbf{código abierto}. Para ello, se publica bajo una licencia \textit{GPLv3} en un repositorio público en \textit{Github}.\\
+Se tratará de un proyecto de software \textbf{libre} y de \textbf{código abierto}. Para ello, se publicará bajo una licencia \textit{GPLv3} en un repositorio público en \textit{Github}.\\
 
-Además de \textit{Github}, existen otras alternativas de repositorios públicos que permiten utilizar \textit{git} para control de versiones (como \textit{Bitbucket} y \textit{Gitlab} entre otras). El porqué de utilizar \textit{Github} es meramente por aprovechar la licencia \textit{premium} que se provee a los estudiantes de la UGR simplemente por matricularse; permitiendo así tener algunos repositorios privados a nuestra disposición.\\
+Además de \textit{Github}, existen otras alternativas de repositorios públicos que permiten utilizar \textit{git} para control de versiones (como \textit{Bitbucket} y \textit{Gitlab} entre otras). El porqué de utilizar \textit{Github} es meramente por aprovechar la licencia \textit{premium} que se provee a los estudiantes de la UGR simplemente por matricularse; permitiendo así tener algunos repositorios privados a su disposición \cite{github-premium}.\\
 
-Con el código público y la licencia elegida, cualquier usuario podrá descargar el software, compilarlo, ejecutarlo e incluso añadir modificaciones al código para ser probadas e integradas en la plataforma final. Para ello, en el propio repositorio se pone a disposición del interesado un fichero \textbf{README.md} con los pasos necesarios.
+Con el código público y la licencia elegida, cualquier usuario podrá descargar el software, compilarlo, ejecutarlo e incluso añadir modificaciones al código para ser probadas e integradas en la plataforma final. Para ello, en el propio repositorio se pondrá a disposición de los interesados una documentación que explique cómo replicar el entorno tanto de desarrollo como de compilación.\\
 
 
 \subsection{Especificaciones}
 
-El término \textit{plataforma robótica} puede ser demasiado amplio para su manejo, por lo que en esta subsección definiremos algunos de los puntos más interesantes.
+El término \textit{plataforma robótica} puede ser demasiado amplio para su manejo, por lo que en esta sección definiremos algunos de los puntos más interesantes.
 
 \subsubsection{Extensibilidad}
 
-Ya que se desea disponer de una plataforma extensible cuyo comportamiento y características puedan ampliarse a través de software, se debe dotar al robot de una arquitectura que permita este crecimiento.\\
+Ya que se desea disponer de una plataforma extensible cuyo comportamiento y características puedan ampliarse a través de software, se debe dotar al robot de una arquitectura que permita este crecimiento, conteniendo en ella servicios (o módulos) independientes que puedan incluirse o no en función de la aplicación específica que vaya a cumplir el robot.\\
 
-TODO: explicar orquestación de servicios y mensajería.
+Para ello, sería interesante disponer de una arquitectura basada en \textbf{microservicios} donde cada uno de ellos cumple un propósito muy concreto y se comunica con el resto sin generar acoplamiento. Para esto es de imperativa necesidad utilizar un paradigma de comunicación en el cual sea transparente añadir datos y servicios.\\
+
+Por otro lado, ha de asegurarse que existe la \textbf{interoperabilidad}, la cual representa que una arquitectura que incluye distintas plataformas de hardware y diferentes sistemas software (implementados con lenguajes de programación variados) cooperan bien entre sí.\\
+
+Veamos un ejemplo rápido para ilustrar el párrafo anterior: si el programa que recibe los datos de un servidor web está programado en \textit{Python} y debe transmitirlos al servicio que toma las decisiones de movimiento (programado en \textit{C++}); el paradigma de comunicación que los conecta ha de ser \textbf{agnóstico en el lenguaje} y que dicha operación sea efectiva de forma transparente.
+
 
 \subsubsection{Conectividad}
 
-Como plataforma inteligente y conectada que utiliza el paradigma del \textbf{\textit{edge computing}}, sabemos que el robot ha de ser un dispositivo embebido con conexiones al exterior como Bluetooth y/o WiFi. Que éstas vengan implícitas en la plataforma hardware utilizada facilitará mucho el trabajo, ya que nos ahorramos el hecho de tener que soldar componentes. Utilizaremos para ésto una \textit{Raspberry Pi Model 3 B}, que pese a no ser el último modelo de la marca \textit{Raspberry}, es la que tengo a disposición en casa. Además, satisface las necesidades de conectividad que comentábamos.\\
+Como plataforma inteligente y conectada que utiliza el paradigma del \textbf{\textit{edge computing}}, sabemos que el robot ha de ser un dispositivo embebido con conexiones al exterior como \textit{Bluetooth} y/o \textit{WiFi}. Que éstas vengan implícitas en la plataforma hardware utilizada facilitará mucho el trabajo, ya que nos ahorramos el hecho de tener que soldar componentes. En cuanto a plataformas hardware, en el apartado del \textbf{Estado del Arte} ya comentamos algunas alternativas y opciones. Utilizaremos para ésto una \textit{Raspberry Pi Model 3 B}, que pese a no ser el último modelo de la marca \textit{Raspberry}, es la que tengo a disposición en casa. Además, satisface las necesidades de conectividad que comentábamos.\\
 
 Por otro lado, en cuanto al requisito de computación en el borde, la plataforma deberá contener uno o más servicios que permitan la comunicación con el exterior, de una forma u otra, además de enviar y recibir mensajes. Para realizar esta conexión se utilizará el protocolo \textit{WebSocket} \cite{ws_protocol}, alternativa a \textit{HTTP} \cite{http_protocol} y más conveniente en este caso por las siguientes razones:
 

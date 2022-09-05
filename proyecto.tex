@@ -15,16 +15,26 @@
 \usepackage{graphicx}
 \usepackage{afterpage}
 \usepackage{longtable}
-\usepackage[pdfborder={000}]{hyperref}
+\usepackage{hyperref}
 \usepackage{url}
 \usepackage{colortbl,longtable}
 \usepackage[stable]{footmisc}
 \usepackage{index}
+\usepackage{csquotes}
+
+% Customizar colores de enlaces
+\hypersetup{
+	colorlinks=true,
+	linkcolor=black,
+	filecolor=magenta,
+	urlcolor=cyan,
+	pdfpagemode=FullScreen
+}
 
 % ********************************************************************
 % Re-usable information
 % ********************************************************************
-\newcommand{\myTitle}{Lazarillo: plataforma robótica con Edge Computing para guía de caminos.\xspace}
+\newcommand{\myTitle}{Lazarillo - Robot guía: Plataforma robótica de código abierto para uso general.\xspace}
 \newcommand{\myDegree}{Máster en Ingeniería Informática\xspace}
 \newcommand{\myName}{Adrián Morente Gabaldón\xspace}
 \newcommand{\myProf}{Juan José Ramos Muñoz\xspace}
@@ -163,8 +173,8 @@ pdfproducer = {pdflatex}
 \input{capitulos/Conclusion}
 
 % \nocite{*}
-% \bibliography{bibliografia/bibliografia}\addcontentsline{toc}{chapter}{Bibliografía}
-% \bibliographystyle{miunsrturl}
+\bibliographystyle{ieeetr}
+\bibliography{bibliografia/bibliografia}
 
 %\appendix
 %\input{glosario/entradas_glosario}

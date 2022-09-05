@@ -1,13 +1,71 @@
 \chapter{Estado del arte}
 
-TODO: listar robots existentes, describiendo el grado de extensibilidad de cada uno de ellos
+Dado que a lo largo de este documento estaremos hablando sobre dispositivos embebidos, \textit{Internet de las cosas} y plataformas inteligentes (como robots), antes deberemos situarnos un poco en el contexto actual para revisar qué hay en el horizonte, teniendo en cuenta tanto software como hardware y limitaciones técnicas.\\
 
-TODO: listar plataformas móviles como la de una Roomba, diciendo por qué no podemos usarla (código cerrado)
+\subsubsection{¿Qué es un ``robot''?}
+
+Comencemos analizando la definición de la palabra \textbf{\textit{robot}}, que según el \textit{IEEE} (\textit{Instituto de Ingenieros Eléctricos y Electrónicos}, asociación mundial de expertos dedicada a la normalización del desarrollo en diversas áreas técnicas \cite{ieee}), no \textit{es algo fácil de definir}, pero una buena aproximación sería ``una máquina autónoma capaz de percibir el entorno, realizando cálculos para la toma de decisiones y acciones que aplica en el mundo real'' \cite{whats_a_robot}.\\
+
+Un ejemplo de estos es la \textit{Roomba} de la marca \textit{iRobot}, la conocida aspiradora robótica que recorre las habitaciones de la casa de forma totalmente autónoma realizando una limpieza (más o menos a fondo) de ésta \cite{roomba}. Los cálculos que realiza este dispositivo han de serle suficientes para recorrer la casa de forma eficiente, esquivando obstáculos y cubriendo la mayor superficie posible de la vivienda. Para este tipo de computaciones, un dispositivo robótico ha de valerse de sensores de proximidad (u otros), cámaras, etc.\\
+
+\begin{figure}[h]
+	\centering
+	\includegraphics[width=0.7\textwidth]{imagenes/irobot-sensors.png}
+	\caption{Ejemplo de sensores en una \textit{Roomba} - Fuente: \textit{ResearchGate} \cite{roomba-sensors-rg}}
+\end{figure}
+
+Estas medidas de detección y reacción ante el entorno son también usadas por elementos de inteligencia artificial que sin embargo no llegan a ser considerados como ``robots''. Podemos encontrar un ejemplo en el \textit{Autopilot}, que es como llama la compañía automovilística de vehículos eléctricos \textit{Tesla} a su sistema de conducción automática \cite{tesla-ai}. Los complejísimos algoritmos de \textbf{visión computacional} que tienen lugar en el vehículo a la hora de observar el entorno en busca de otros coches, peatones, señales y obstáculos; también pasan por un entrenamiento de modelos de inteligencia artificial intenso. La diferencia en el uso de estos, es que (al menos actualmente), aún no existe la conducción plenamente autónoma, y por seguridad aún se requiere que haya un conductor al volante. ¿Podríamos entonces establecer el límite entre lo que es un ``robot'' y lo que no en función de si es necesaria la interacción humana?\\
+
+Responder a ésto es siempre complejo pero interesante, así que me gustaría concluir esa pregunta volviendo al artículo de ``What is a Robot?'' del \textit{IEEE} \cite{whats_a_robot} con la divertida respuesta de \textit{Joseph Engelberger}:
+
+\begin{displayquote}
+	``No sé cómo definir un robot, ¡pero sé reconocer uno cuando lo veo!''
+\end{displayquote}
+
+\subsubsection{¿Qué necesito para hacer un robot?}
+
+Si quisiéramos crear un nuevo robot, son varios los campos de conocimiento que deberíamos tener en cuenta. Para empezar, la \textbf{electrónica} es algo esencial, ya que su base será la que permitirá controlar el movimiento del dispositivo a través de pulsos de corriente, además de dotarlo de los periféricos de detección y comunicación que hemos mencionado previamente. Por otro lado, el campo de la \textbf{informática} permitirá extender las funcionalidades de este robot dotándole de un sistema operativo y añadiendo aplicaciones sobre la capa abstracta tejida por la electrónica.\\
+
+Si hablamos de hardware, podemos empezar por adquirir una plataforma móvil ya preparada para su uso. Lo primero que puede pensar cualquiera es tomar una como la \textit{Roomba}, cuya movilidad y detección de obstáculos ya está implementada, y sobre ella añadir los componentes y prestaciones que queramos. El problema en cuanto a ésto es que se trata de una \textbf{plataforma cerrada}. No disponer del código fuente hace que no podamos extender el robot como queramos, y así el fabricante se reserva los derechos de su uso.\\
+
+Si no podemos asumir el presupuesto de una plataforma ya montada o simplemente queremos hacer pruebas y divertirnos con la experiencia, hoy en día es fácil y asequible acceder a componentes electrónicos con los que crear pequeños robots y artefactos caseros. Un ejemplo de \textit{núcleo} para ésto sería una placa de \textit{Arduino}, que por unos 20 o 30 euros contiene las conexiones para añadirle módulos de cámara, altavoces, servomotores y cualquier cosa que se nos ocurra \cite{arduino-store}.\\
+
+\begin{figure}[h]
+	\centering
+	\includegraphics[width=0.9\textwidth]{imagenes/zowi-robot-componentes.jpg}
+	\caption{\textit{Zowi}, ejemplo de robot basado en Arduino mas sensores - Fuente: \textit{Balara} \cite{zowi-balara}}
+\end{figure}
+
+Esta placa de desarrollo contiene un microcontrolador que permite ser programado en código C muy fácilmente, pero está limitado a eso. Si queremos utilizar un sistema que nos permita gestionar más cosas que la simple ejecución de un código, como un sistema operativo completo, deberíamos dar el salto a algo más parecido a un ordenador común, para lo que puede servirnos la conocida \textit{Raspberry Pi} \cite{raspberry-pi}. Existen otras alternativas de la misma gama provenientes de \textit{Asus} o de \textit{NXP} \cite{nxp-imx}, pero nos ceñiremos a la primera ya que está muy enfocada al sector educativo y al público joven y goza de una comunidad muy numerosa. Lo que todos estos dispositivos comparten son diversas conexiones a través de las cuales podemos añadir los elementos que mencionábamos previamente para nuestro proyecto de robot, además de permitirnos acceso a la configuración de su sistema operativo (o incluso podemos confeccionar uno a nuestra medida, como veremos en el siguiente apartado).\\
+
+\begin{figure}[h]
+	\centering
+	\includegraphics[width=0.75\textwidth]{imagenes/asus-tinker-conexiones.png}
+	\caption{\textit{Tinker board}, la alternativa de \textit{Asus} - Fuente: \textit{Asus.com} \cite{asus-tinker}}
+\end{figure}
+
+
+\subsubsection{Sistema operativo, el cerebro del robot}
+
+Continuando con la \textit{Raspberry}, el ordenador monoplaca en torno al cual podríamos construir nuestro robot, pasemos ahora a hablar del sistema operativo. Para esta placa en cuestión existe uno muy aclamado por la gente llamado \textbf{\textit{Raspbian}} \cite{raspbian}, basado en \textit{Debian}, una conocida distribución de \textit{GNU/Linux} que viene de los propios creadores de la \textit{RPi} y dispone de todo lo necesario para formar un sistema de operativo completo, incluyendo hasta interfaz gráfica y aplicaciones de escritorio.\\
+
+Contando con instalar en la tarjeta de memoria un sistema operativo ya montado como éste, podríamos seguir adelante con la conexión de periféricos que conformarán nuestro robot, o quizás nos interese más detenernos un momento a decidir si realmente queremos usar opciones como \textit{Raspbian} o preferimos tener algo personalizado y a nuestra medida.\\
+
+Para los más aventureros, existe la posibilidad de diseñar y compilar un sistema operativo propio (aunque también basado en \textit{GNU/Linux}) con herramientas como \textbf{\textit{Buildroot}} \cite{buildroot} y \textbf{\textit{The Yocto Project}} \cite{yocto-project}. Se tratan de frameworks que permiten compilar una distribución \textit{Linux} a medida según las necesidades del dispositivo embebido en cuestión seleccionando las piezas que lo conforman como si de un puzzle se tratase. Por ejemplo, un robot que no tenga pantalla pero sí informe al usuario mediante efectos sonoros puede prescindir de todos los paquetes gráficos; igual que otro que no necesite conectarse a un router de forma inalámbrica no necesita tener instalados todos los paquetes correspondientes a la gestión de \textit{WiFi}.\\
+
+Por un lado, tenemos la decisión entre utilizar un sistema operativo ya compilado o diseñarlo como hemos comentado. Si miramos el estudio que realizó \textit{Mads Doré Hansen} en su paper \textit{Yocto or Debian for Embedded Systems} \cite{yocto-or-debian} podemos matizar nuestra respuesta en consideración.
+
+\begin{displayquote}
+	``\textit{Debian} es bueno para pruebas rápidas y entornos de escritorio con memorias grandes y requisitos bajos de mantenimiento. \textit{Yocto} es bueno para entornos personalizados con soporte a distintas plataformas hardware de poca memoria y que requieren trazabilidad y reusabilidad.
+\end{displayquote}
+
+Sobre \textit{Debian}, también menciona que al ser conveniente para pruebas rápidas, muchos equipos de desarrollo comienzan su trabajo en la plataforma embebida utilizándolo, posponiendo tanto el paso a utilizar \textit{Yocto} para diseñar un sistema propio, que terminan postérgandolo infinitamente y no lo realizan nunca. Un argumento a favor de ellos es que la \textbf{curva de aprendizaje} de \textit{Yocto} es grande, dado que requiere compilar todo el sistema para la arquitectura destino, mientras que opciones como \textit{Debian} seguramente ya dispongan de paquetes precompilados.\\
+
+Por ahora, nos conformaremos con saber de la existencia de estas alternativas. Más adelante comentaremos cuál nos resulta más conveniente para el caso que nos ocupa.\\
+
+
+\subsubsection{Programación del robot}
+
+Pasemos ahora a hablar de \textbf{software}. ¿Qué herramientas necesita un desarrollador para programar su robot? Pues bien, indagando un poco podremos ver que realmente no dista mucho de codificar cualquier otro software convencional.
 
 TODO: describir sucíntamente ROS y por qué no es necesario usarlo existiendo Redis
-
-TODO: listar placas como RPI
-
-TODO: listar sistemas operativos para RPI como Raspbian
-
-TODO: describir uso de yocto en lugar de Buildroot y otras alternativas

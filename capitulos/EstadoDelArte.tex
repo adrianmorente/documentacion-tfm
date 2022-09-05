@@ -66,6 +66,25 @@ Por ahora, nos conformaremos con saber de la existencia de estas alternativas. M
 
 \subsubsection{Programación del robot}
 
-Pasemos ahora a hablar de \textbf{software}. ¿Qué herramientas necesita un desarrollador para programar su robot? Pues bien, indagando un poco podremos ver que realmente no dista mucho de codificar cualquier otro software convencional.
+Pasemos ahora a hablar de \textbf{software}. ¿Qué herramientas necesita un desarrollador para programar su robot? Pues bien, indagando un poco podremos ver que realmente no dista mucho de codificar cualquier otro software convencional.\\
 
-TODO: describir sucíntamente ROS y por qué no es necesario usarlo existiendo Redis
+En el artículo de \textit{Codete} citado \cite{codete}, listan por orden de volumen de uso los lenguajes de programación más utilizados para robótica. Podemos ver que todos los lenguajes ahí presentes son de uso general, y que cualquier experiencia que ya podamos tener por ejemplo con \textit{Python} para desarrollo web, nos puede servir para iniciarnos en el mundo de la robótica. Otro ejemplo es \textit{Java}, que si bien también es usado extensamente para aplicaciones de escritorio entre otras, aporta herramientas y librerías que pueden ser muy útiles para recepción y procesamiento de imágenes.\\
+
+Sin embargo, de acuerdo con dicho artículo, el más ampliamente usado es \textit{C} y \textit{C++}, ya que permiten un manejo más eficiente de la memoria y un procesamiento a bajo nivel más cercano al hardware. Además, estos lenguajes colaboran directamente con la API del sistema operativo, utilizando las propias librerías ya presentes en el dispositivo.\\
+
+Por otro lado, cuando se habla de robótica suele salir a colación \textit{\textbf{ROS} (Robot Operating System)} \cite{why-ros}, un proyecto de \textbf{código abierto} que incluye un conjunto de librerías y herramientas con las que no es necesario \textit{reinventar la rueda} para adentrarse en la programación de robótica. En diversos artículos podemos encontrar razones por las que utilizar \textit{ROS} (como en \cite{reasons-ros}):
+
+\begin{itemize}
+	\item Se trata de un sistema agnóstico para lenguajes. Permite comunicar un robot programado en \textit{C++} con otro hecho en \textit{Python}, por ejemplo.
+	\item Es ligero y de propósito general para cualquier finalidad que tenga el robot en cuestión.
+	\item Contiene herramientas de simulación que facilitan el desarrollo del robot antes de requerir el uso físico de electrónica real (lo que puede suponer un ahorro en costes de material).
+\end{itemize}
+
+Para un uso modesto, quizá el aspecto más interesante de utilizar \textit{ROS} puede resultar la comunicación entre distintos \textbf{nodos}. Podemos entender como \textit{nodo} cada una de las partes independientes del robot que colabora con el resto. Para un robot hipotético que se desliza sobre el suelo y que mueve los brazos para agarrar cosas, podríamos distinguir entre sus nodos la plataforma móvil, las manos, las cámaras que observan el entorno y un largo etcétera. En cuanto a cómo se comunican estos nodos, podemos plantearlo como un problema de comunicación de distintos servicios cualesquiera. Veamos esto en el siguiente apartado.\\
+
+
+\subsubsection{¿Cómo se comunican los nodos de un robot}
+
+Como anticipábamos, podemos entender cada \textbf{nodo} como un servicio independiente que se comunica con el resto a través de algún mecanismo integrado en el sistema operativo.
+
+TODO: Alternativas: IPC, PubSub, etc.

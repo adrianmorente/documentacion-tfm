@@ -241,23 +241,23 @@ Basta con integrar esta sencilla aplicación dentro del sistema operativo, cambi
 
 \section{Arquitectura de Lazarillo}
 
-Una vez que hemos visto la integración completa del sistema operativo, en esta sección enumeraremos los distintos servicios y módulos específicos creados para \textit{Lazarillo} y describiremos el propósito para el que han sido programados. Como venimos comentando, habrá ciertas partes que serán enteramente embebidas en el robot, y por otro lado también existirán otros componentes software que estarán situados ``fuera''.\\
-
-
-
-
-
-Antes de nada, para hacernos una idea general de todos los entes involucrados en el software, prestemos atención al siguiente diagrama.\\
+Una vez que hemos visto la integración completa del sistema operativo, en esta sección enumeraremos los distintos servicios y módulos específicos creados para \textit{Lazarillo} y describiremos el propósito para el que han sido programados. Como venimos comentando, habrá ciertas partes que serán enteramente embebidas en el robot, y por otro lado también existirán otros componentes software que estarán situados ``fuera''. Para hacernos una idea general de todos los entes involucrados en el software, prestemos atención al diagrama de la figura \ref{lazarillo-architecture}.\\
 
 \begin{figure}[h]
+	\label{lazarillo-architecture}
 	\centering
 	\includegraphics[width=\textwidth]{imagenes/lazarillo-architecture.png}
 	\caption{Diagrama mostrando la arquitectura del proyecto, incluyendo conexiones entre servicios y relaciones internas.}
 \end{figure}
 
-\subsection{Servicios internos}
+A la izquierda del todo, junto al agente denominado \textit{Admin} se ubican los dos servicios web involucrados que ya hemos mencionado (\textbf{lazarillo-admin}, arriba \textbf{frontend} y \textbf{backend} abajo). A su derecha encontramos un rectángulo grande que engloba todo el software enclaustrado (\textbf{lazarillo-embedded}) y para finalizar, la interfaz de usuario (gráfica táctil y sonora) con la que interactuarán los que necesiten de la atención de \textit{Lazarillo}.\\
 
-Veamos ahora una breve explicación del propósito que satisfacen los módulos software internos del robot.
+Para explicar la implementación, separaremos todo el software en tres módulos: uno para el software embebido y otro por cada servicio web (que son dos). Aunque ya venimos anunciando cosas, entraremos a continuación en detalles más profundos de lenguajes de programación y librerías utilizadas.\\
+
+
+\subsection{lazarillo-embedded}
+
+TODO: entrar en detalles de diseño de software, servicios utilizados, arquitectura de los módulos comunes, magia hecha con CMake, etc.
 
 \subsubsection{lazarillo-hmi}
 
@@ -278,11 +278,10 @@ Este módulo define el esqueleto abstracto de cada uno de los servicios del robo
 Este servicio es el \textit{puerto de entrada} a Lazarillo. Realiza la comunicación mediante \textit{Websockets} con \textbf{\textit{lazarillo-admin}}, el portal web a través del cual un técnico puede administrar los distintos robots. \textit{\textbf{Web-gateway}} actúa como intérprete de los mensajes provenientes del \textit{socket} y los publica en la mensajería interna del robot (basada en \textit{Redis}) para informar al resto de servicios de cualquier acción emitida por el servidor.
 
 
-\subsection{Componentes externos}
+\subsection{lazarillo-admin-frontend}
+\subsection{lazarillo-admin-backend}
 
 Como venimos comentando, además del software embebido en el robot, disponemos de otros módulos externos a él que completan la plataforma.
-
-\subsubsection{lazarillo-admin}
 
 Este es el título asignado al servicio web que tanto venimos comentando a lo largo de este documento, a través del cual podemos visualizar y gestionar los distintos robots conectados al servidor.\\
 

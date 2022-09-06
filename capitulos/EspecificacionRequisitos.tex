@@ -19,7 +19,8 @@ Con el código público y la licencia elegida, cualquier usuario podrá descarga
 
 \subsection{Especificaciones}
 
-El término \textit{plataforma robótica} puede ser demasiado amplio para su manejo, por lo que en esta sección definiremos algunos de los puntos más interesantes.
+El término \textit{plataforma robótica} puede ser demasiado amplio para su manejo, por lo que en esta sección detallaremos más a fondo algunos de los puntos más interesantes, así como los factores de éxito que harían de \textbf{\textit{Lazarillo}} un producto útil y diferencial con respecto a las alternativas ya existentes.\\
+
 
 \subsubsection{Extensibilidad}
 
@@ -29,42 +30,55 @@ Para ello, sería interesante disponer de una arquitectura basada en \textbf{mic
 
 Por otro lado, ha de asegurarse que existe la \textbf{interoperabilidad}, la cual representa que una arquitectura que incluye distintas plataformas de hardware y diferentes sistemas software (implementados con lenguajes de programación variados) cooperan bien entre sí.\\
 
-Veamos un ejemplo rápido para ilustrar el párrafo anterior: si el programa que recibe los datos de un servidor web está programado en \textit{Python} y debe transmitirlos al servicio que toma las decisiones de movimiento (programado en \textit{C++}); el paradigma de comunicación que los conecta ha de ser \textbf{agnóstico en el lenguaje} y que dicha operación sea efectiva de forma transparente.
+Veamos un ejemplo rápido para ilustrar el párrafo anterior: si el programa que recibe los datos de un servidor web está programado en \textit{Python} y debe transmitirlos al servicio que toma las decisiones de movimiento (programado en \textit{C++}); el paradigma de comunicación que los conecta ha de ser \textbf{agnóstico en el lenguaje} y que dicha operación sea efectiva de forma transparente.\\
 
 
 \subsubsection{Conectividad}
 
 Como plataforma inteligente y conectada que utiliza el paradigma del \textbf{\textit{edge computing}}, sabemos que el robot ha de ser un dispositivo embebido con conexiones al exterior como \textit{Bluetooth} y/o \textit{WiFi}. Que éstas vengan implícitas en la plataforma hardware utilizada facilitará mucho el trabajo, ya que nos ahorramos el hecho de tener que soldar componentes. En cuanto a plataformas hardware, en el apartado del \textbf{Estado del Arte} ya comentamos algunas alternativas y opciones. Utilizaremos para ésto una \textit{Raspberry Pi Model 3 B}, que pese a no ser el último modelo de la marca \textit{Raspberry}, es la que tengo a disposición en casa. Además, satisface las necesidades de conectividad que comentábamos.\\
 
-Por otro lado, en cuanto al requisito de computación en el borde, la plataforma deberá contener uno o más servicios que permitan la comunicación con el exterior, de una forma u otra, además de enviar y recibir mensajes. Para realizar esta conexión se utilizará el protocolo \textit{WebSocket} \cite{ws_protocol}, alternativa a \textit{HTTP} \cite{http_protocol} y más conveniente en este caso por las siguientes razones:
+Por otro lado, en cuanto al requisito de computación en el borde, la plataforma deberá contener uno o más servicios que permitan la comunicación con el exterior, de una forma u otra, además de enviar y recibir mensajes. El robot deberá habilitar un canal de comunicación \textbf{persistente} y \textbf{bidireccional} que le permitan tanto a él como al servidor enviarse eventos entre sí.\\
 
-\begin{itemize}
-    \item 
-\end{itemize}
-
-TODO: (explicar bondades de WS). 
 
 \subsubsection{Interfaz y experiencia de usuario}
 
-El robot contará con una pantalla táctil con la que proveerá la información necesaria al usuario (en función de las aplicaciones que necesite o decidan integrarse en el robot). Cualquier pantalla táctil que permita su conexión con la \textit{Raspberry} debería servir, por lo que no entraremos a detallar limitaciones hardware. Para la interacción del usuario, el sistema contará con una \textbf{aplicación embebida de entorno gráfico} que permita el uso del robot. La tecnología usada por esta aplicación, se ha decidido que sea el framework de \textbf{\textit{Qt}}, que pese a tener modalidades de licencias de pago, permite un uso \textit{open source}. Además, se trata de una tecnología con una amplia comunidad, una documentación muy rica y un gran soporte para dispositivos embebidos. Por otro lado, dispongo de amplia experiencia con dicha herramienta, lo que agiliza enormemente el tiempo de desarrollo.\\
+El robot contará con una pantalla táctil con la que proveerá la información necesaria al usuario (en función de las aplicaciones que necesite o decidan integrarse en el robot). Cualquier pantalla táctil que permita su conexión con la \textit{Raspberry} debería servir, por lo que no entraremos a detallar limitaciones hardware. Para la interacción del usuario, el sistema contará con una \textbf{aplicación embebida de entorno gráfico} que permita el uso del robot.\\
 
-Otra característica que sería de agradecer en la plataforma tiene que ver con la \textbf{reproducción de sonidos} que faciliten la comunicación con el usuario, así como la \textbf{accesibilidad}. No todo el mundo goza de capacidad visual o simplemente no están habituados a interfaces táctiles, por lo que emitir alertas y sonidos descriptivos facilitaría llegar a más usuarios de forma plena y satisfactoria.
+Dado que \textbf{\textit{Lazarillo}} se pretende que actúe como \textbf{guía}, otra característica que sería de agradecer en la plataforma tiene que ver con la \textbf{reproducción de sonidos} que faciliten la comunicación con el usuario, así como la \textbf{accesibilidad}. No todo el mundo goza de capacidad visual o simplemente no están habituados a interfaces táctiles, por lo que emitir alertas y sonidos descriptivos facilitaría llegar a más usuarios de forma plena y satisfactoria.\\
 
 \subsubsection{Gestión experta y mantenimiento}
 
-Como hemos comentado en secciones anteriores, el robot goza de hardware provisto de conectividad inalámbrica. En este punto haremos uso de esta característica para ofrecer un método de mantenimiento, supervisión y gestión del robot, por parte de alguna "mano experta".\\
+Como hemos comentado en secciones anteriores, el robot gozará de hardware provisto de conectividad inalámbrica. En este punto haremos uso de esta característica para ofrecer un método de mantenimiento, supervisión y gestión del robot, por parte de alguna "mano experta". Necesitaremos un método de administración de los distintos robots existentes desde un portal web externo a ellos. Un técnico encargado de gestionar los robots, accederá a una web alojada en un servidor a través del protocolo común de \textit{HTTP}.\\
 
-De forma similar a lo que comentamos sobre \textit{Websockets} en el apartado de \textbf{Conectividad}, aquí necesitaremos de un método de administración de los distintos robots existentes desde un portal web externo a ellos. Un técnico encargado de gestionar los robots, accederá a una web alojada en el servidor externo que realiza \textit{la computación en el borde}. Ésta será una web sencilla utilizando el protocolo común de \textit{HTTPS}.\\
+Inicialmente, este portal web servirá para listar los dispositivos conectados (es decir, los robots que han sido provisionados con el software de \textit{Lazarillo} y se encuentran en funcionamiento), pero posteriormente permitirá enviar acciones remotas desde el servidor al robot (como reinicios, actualizaciones de software, acciones concretas a realizar por el robot, etc.).\\
 
-Inicialmente, este portal web servirá para listar los dispositivos conectados (es decir, los robots que han sido provisionados con el software de \textit{Lazarillo} y se encuentran en funcionamiento), pero posteriormente permitirá enviar acciones remotas desde el servidor al robot (como reinicios, actualizaciones de software, acciones concretas a realizar por el robot, etc.).
+Es deseable que la interfaz web sea sencilla y usable. Además, sería de agradecer que ésta pueda visualizarse correctamente en \textbf{dispositivos móviles}, ya que ampliaría el rango de posibilidades de gestión de los dispositivos robóticos.\\
 
 \subsubsection{Movilidad}
 
-El factor determinante que diferenciará a nuestro robot de un sistema empotrado inmóvil será la capacidad de desplazarse por el entorno. Ya sea para un uso u otro, el robot deberá venir dotado de un sistema hardware que le permita avanzar por el plano, conteniendo elementos como motores y ruedas o cintas móviles.\\
+El factor determinante que diferenciará a nuestro robot de un sistema empotrado inmóvil será la capacidad de desplazarse por el entorno. Ya sea para un uso u otro, el robot deberá venir dotado de un sistema hardware que le permita avanzar por el plano, conteniendo elementos como \textbf{motores} y \textbf{ruedas} o \textbf{cintas móviles}.\\
 
 Además, si se desea que el robot sea \textbf{inteligente} y reconozca el entorno por el que se está moviendo, deberá dotarse de algún sistema de reconocimiento como \textbf{sensores de proximidad} o \textbf{cámaras}. Respecto a esto, si queremos seguir el paradigma de \textit{edge computing} como venimos comentando, el procesamiento de estas señales podría realizarse en el servidor en lugar de en el propio robot, lo que también liberaría a la plataforma hardware del robot de una buena parte de la computación.\\
+
+Para acotar el alcance del proyecto y que sea asumible para un trabajo de este calibre, inicialmente la movilidad podrá estar basada en hacer \textbf{seguimiento de líneas} sobre el suelo.\\
+
+\begin{figure}[h]
+	\centering
+	\includegraphics[width=0.6\textwidth]{imagenes/robotnik.jpg}
+	\caption{Ejemplo de robot móvil autónomo - Fuente: \textit{Robotnik}}
+\end{figure}
 
 
 \section{Objetivos opcionales}
 
-(TODO: listar cosas que podrían hacerse para las que no habrá tiempo.)
+En esta sección enumeraremos y describiremos sucíntamente qué otras ideas surgieron durante el momento de \textit{brainstorming} del proyecto, y que si bien son opcionales para su desempeño, realmente aportarían algún valor al producto final.\\
+
+
+\subsubsection{Movilidad autónoma}
+
+Un factor que haría de \textbf{\textit{Lazarillo}} un producto totalmente independiente y útil sería que no necesitase de caminos guiados para desplazarse. Se valoraría la instalación en sí mismo de los mapas cerrados en que se ubicaría durante su desempeño, así como un mecanismo de \textbf{geolocalización} en el espacio. Contando con esto, el robot mantendría una comunicación persistente con el servidor informando en \textit{tiempo real} de la ubicación actual.\\
+
+
+
+
+

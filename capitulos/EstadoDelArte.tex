@@ -14,7 +14,15 @@ Un ejemplo de estos es la \textit{Roomba} de la marca \textit{iRobot}, la conoci
 	\caption{Ejemplo de sensores en una \textit{Roomba} - Fuente: \textit{ResearchGate} \cite{roomba-sensors-rg}}
 \end{figure}
 
-Estas medidas de detección y reacción ante el entorno son también usadas por elementos de inteligencia artificial que sin embargo no llegan a ser considerados como ``robots''. Podemos encontrar un ejemplo en el \textit{Autopilot}, que es como llama la compañía automovilística de vehículos eléctricos \textit{Tesla} a su sistema de conducción automática \cite{tesla-ai}. Los complejísimos algoritmos de \textbf{visión computacional} que tienen lugar en el vehículo a la hora de observar el entorno en busca de otros coches, peatones, señales y obstáculos; también pasan por un entrenamiento de modelos de inteligencia artificial intenso. La diferencia en el uso de estos, es que (al menos actualmente), aún no existe la conducción plenamente autónoma, y por seguridad aún se requiere que haya un conductor al volante. ¿Podríamos entonces establecer el límite entre lo que es un ``robot'' y lo que no en función de si es necesaria la interacción humana?\\
+Otro ejemplo mucho más claro de robot lo encontramos en \textbf{\textit{Pepper}} \cite{pepper-robot} (obra de \textit{SoftBank Robotics}), un computador con apariencia \textit{humanoide} con hasta 20 grados de libertad que acepta interacción a través de una pantalla táctil, además de incorporar \textbf{reconomiento vocal} en 15 lenguajes diferentes. Por si fuera poco, a través del \textbf{reconocimiento facial} que hace de los usuarios es capaz de inferir su estado emocional.\\
+
+\begin{figure}[h]
+	\centering
+	\includegraphics[width=0.7\textwidth]{imagenes/pepper-hospital.jpg}
+	\caption{El robot humanoide Pepper proporciona atención a los pacientes en hospitales de Barcelona, brindándoles apoyo moral y entretenimiento - Fuente: \textit{Noticias de Navarra} \cite{pepper-noticias}}
+\end{figure}
+
+Si bien el conjunto de avances de inteligencia artifical que realizan los robots de este tipo son espléndidos, no hace falta irse a un plano tan alto para hablar de robótica; ni aunar medidas tan avanzadas de detección y reacción ante el entorno, que también pueden ser usadas por elementos inteligentes que sin embargo no llegan a ser considerados como ``robots''. Podemos encontrar un ejemplo en el \textit{Autopilot}, que es como llama la compañía automovilística de vehículos eléctricos \textit{Tesla} a su sistema de conducción automática \cite{tesla-ai}. Los complejísimos algoritmos de \textbf{visión computacional} que tienen lugar en el vehículo a la hora de observar el entorno en busca de otros coches, peatones, señales y obstáculos; también pasan por un entrenamiento de modelos de inteligencia artificial intenso. La diferencia en el uso de estos, es que (al menos actualmente), aún no existe la conducción plenamente autónoma, y por seguridad aún se requiere que haya un conductor al volante. ¿Podríamos entonces establecer el límite entre lo que es un ``robot'' y lo que no en función de si es necesaria la interacción humana?\\
 
 Responder a ésto es siempre complejo pero interesante, así que me gustaría concluir esa pregunta volviendo al artículo de ``What is a Robot?'' del \textit{IEEE} \cite{whats_a_robot} con la divertida respuesta de \textit{Joseph Engelberger}:
 
@@ -101,7 +109,7 @@ Por otro lado, \textit{Message Passing} (\textbf{paso de mensajes}) consiste en 
 
 Dejando \textit{IPC} a un lado y volviendo a \textit{ROS}, que antes mencionábamos que es un set de librerías y herramientas bien amplio, destaquemos ahora que también contiene formas de comunicación entre nodos, e incluso su documentación contiene tutoriales sobre cómo empezar a trabajar en ello (como encontramos en \cite{ros-tutorial}, donde enseñan cómo partir con un modelo \textbf{\textit{publicación-suscripción}} en lenguaje \textit{C++}).\\
 
-Este modelo también conocido como \textit{PubSub} se trata de una forma de \textbf{mensajería asíncrona} para integrar microservicios en una arquitectura software. O como detallan en \textit{Amazon AWS} \cite{whats-pubsub}: ``para usar en arquitecturas \textit{serverless} o basadas en \textbf{microservicios}''.\\
+Este patrón también conocido como \textit{PubSub} se trata de una forma de \textbf{mensajería asíncrona} para integrar microservicios en una arquitectura software. O como detallan en \textit{Amazon AWS} \cite{whats-pubsub}: ``para usar en arquitecturas \textit{serverless} o basadas en \textbf{microservicios}''.\\
 
 El funcionamiento de éste es simple y permite implementar \textbf{arquitecturas basadas en eventos}:
 
@@ -117,6 +125,14 @@ El funcionamiento de éste es simple y permite implementar \textbf{arquitecturas
 	\caption{Mecánica \textit{PubSub}. Dos servicios publican sobre un mismo tópico para que otros tres reciban su contenido inmediatamente - Fuente: \textit{Amazon AWS} \cite{whats-pubsub}}
 \end{figure}
 
+Sobre \textit{PubSub}, encontramos también el \textbf{servicio de mensajería \textit{MQTT}}, que funciona de forma similar. En la imagen siguiente. vemos que ahora se sitúan al \textbf{publicador} y al \textbf{suscriptor} a ambos lados de un \textbf{bróker}, que es el responsable de notificar a cada uno de los servicios suscritos cuando se ha añadido un mensaje a su tópico de interés.\\
+
+\begin{figure}[h]
+	\centering
+	\includegraphics[width=0.6\textwidth]{imagenes/protocolos-iot-pubsub.png}
+	\caption{Mensajería \textit{MQTT} con patrón \textbf{publicador/suscriptor}. El bróker intermedio es quien recibe los mensajes que van a cada tópico y notifica a cada servicio suscrito. - Fuente: \textit{Luis Llamas} \cite{mqtt-pubsub}}
+\end{figure}
+
 En mi experiencia, el modelo \textit{PubSub} es el más cómodo de utilizar una vez que el proyecto ya está preparado para trabajar en él y añadir funcionalidades, además de gozar de una gran \textbf{escalabilidad}, ya que añadir nuevos mensajes, tópicos y servicios es totalmente transparente y práctico. Bien es cierto que para no reinventar la rueda, es conveniente utilizar librerías que ya implementen este paradigma, como \textit{Redis} o \textit{ROS}, que mencionábamos antes.\\
 
 Si bien hemos visto que \textit{ROS} puede servir para cualquiera que quiera iniciarse en la robótica, \textit{Redis} es una herramienta muy interesante a tener en cuenta para intercomunicar los distintos nodos o procesos que tendrán lugar en el dispositivo. Se trata de un \textbf{almacén de estructuras de datos} que puede actuar como base de datos, caché o bróker de mensajes; que se mantiene en memoria principal, por lo que es volátil a la par que muy rápida \cite{redis}. Además, implementa el paradigma \textit{PubSub}, permitiendo realizar suscripciones a tópicos y/o publicar mensajes sobre ellos. Automáticamente, los programas que utilicen alguna librería de \textit{Redis} son notificados cuando un mensaje es publicado en un tópico al que están suscritos \cite{redis-pubsub}.\\
@@ -124,10 +140,37 @@ Si bien hemos visto que \textit{ROS} puede servir para cualquiera que quiera ini
 Dejemos aquí la enumeración y descripción de los distintos módulos software que nos pueden servir para programar el susodicho robot. En apartados posteriores estudiaremos cada una de las decisiones tomadas al respecto.\\
 
 
+\subsubsection{Conectividad del robot}
 
+Para terminar con el \textit{Estado del Arte}, veamos por último qué opciones hay a la hora de comunicar nuestro robot con la red exterior, en caso de que necesitemos enviar telemetría, recibir órdenes remotas o incluso recabar datos para un servidor.\\
 
+La primera alternativa que nos encontramos se trata del conocido protocolo \textbf{\textit{HTTP}} (\textit{HyperText Transfer Protocol}), que utilizamos a diario cuando consultamos cualquier web a través de nuestro ordenador o teléfono móvil. De acuerdo con la documentación de \textit{Mozilla} \cite{http_protocol}, es un protocolo de escritura cliente-servidor donde la comunicación es iniciada por el \textbf{cliente}, es decir, el interesado en recibir los datos (normalmente una página web). La particularidad de este protocolo es que cada conexión termina en cuanto el servidor provee una respuesta completa al cliente. Veámoslo en la siguiente figura:
 
+\begin{figure}[h]
+	\centering
+	\includegraphics[width=0.7\textwidth]{imagenes/http.png}
+	\caption{Funcionamiento del protocolo \textit{HTTP}. Un cliente realiza una petición a través de la red, el servidor recolecta los datos necesarios, los envía al cliente y finaliza la conexión. - Fuente: \textit{Research hubs} \cite{http-image}}
+\end{figure}
 
+Una alternativa que encontramos hoy en día al clásico \textit{HTTP} es el protocolo \textbf{\textit{WebSockets}}, que de acuerdo con la documentación para desarrolladores de \textit{Mozilla}: \textit{``es una tecnología que permite abrir una sesión de comunicación \textbf{interactiva} entre el cliente y el servidor''} \cite{ws_protocol}.\\
+
+Las diferencias entre éste y el anterior son:
+
+\begin{itemize}
+	\item La conexión en \textit{HTTP} finaliza con cada respuesta exitosa, mientras que en \textit{WebSockets} es interactiva, permaneciendo abierta entre el cliente y el servidor, sin necesidad de reabrirla para cada nueva petición.
+	\item \textit{WebSockets} es una tecnología \textbf{basada en eventos}, por lo que no es necesario realizar lecturas periódicas de cara al otro extremo ya que los mensajes enviados por éste \textit{notifican} al servicio que la utiliza.
+	\item La comunicación es \textbf{bidireccional}: una vez que se establece la conexión, tanto el cliente como el servidor pueden mandarse mensajes entre sí transparentemente sin necesidad de renegociar el canal de conexión.
+\end{itemize}
+
+\begin{figure}[h]
+	\centering
+	\includegraphics[width=0.8\textwidth]{imagenes/ws_vs_http.png}
+	\caption{La diferencia entre la conexión en \textit{WebSocket} y \textit{HTTP} la vemos en la última línea de cada diagrama. En el primer caso el canal permanece abierto y en el segundo se cierra tras la respuesta del servidor. - Fuente: \textit{Wallarm.com} \cite{ws_connection}}
+\end{figure}
+
+Para terminar con esta sección, cabe recordar también otra vez \textbf{\textit{MQTT}}, que pese a no ser un protocolo como tal, permitirá orquestar los robots en torno a un servidor de forma que puedan compartir un canal de \textbf{mensajería \textit{push}} sobre un servidor acordado. Este elemento actuaría como \textbf{nodo principal} que podría publicar en distintos tópicos, y los robots actuarían como nodos \textbf{secundarios} y suscritos.\\
+
+Si bien siempre es posible indagar un poco más en todas las alternativas y tecnologías que tenemos disponibles a día de hoy, pasemos de una vez a enumerar los requisitos que regirán el desarrollo de este proyecto.\\
 
 
 

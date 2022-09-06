@@ -1,10 +1,25 @@
 \chapter{Implementación}
 
-En este capítulo comentaremos a fondo las decisiones tomadas que hemos comentado previamente en base a la especificación, además de describir las implementaciones propuestas con las distintas tecnologías utilizadas.\\
+En este capítulo comentaremos a fondo las decisiones tomadas que hemos comentado previamente en base a la especificación, además de describir las implementaciones propuestas con las distintas tecnologías utilizadas. Pondremos el foco no solo en el \textbf{software implícito en el robot} sino también a los componentes desarrollados externos a él, pero que también conforman la arquitectura completa de la plataforma, como lo son el \textbf{sistema operativo}, el \textbf{panel web de administración} y otras herramientas involucradas. Las ideas que por una razón u otra no hayan llegado a implementarse a tiempo, serán definidas en profundidad en apartados posteriores.\\
 
-Pondremos el foco no solo en el software implícito en el robot sino también a los componentes desarrollados externos a él, pero que también conforman la arquitectura completa de la plataforma.\\
+Para elaborar este capítulo de una forma más legible y entendible, seguiremos una estructura muy similar a la propuesta en el capítulo 3 de \textbf{Especificación de requisitos}.\\
 
-Las ideas que por una razón u otra no hayan llegado a implementarse a tiempo, serán definidas en profundidad en apartados posteriores.
+
+\section{Requisitos generales}
+
+
+\subsection{Licencias y compartición del software}
+
+En cuanto a licencias y permisos del proyecto, como se anticipó se usarán diversos \textbf{repositorios} en \textit{Github}, que aparecen listados a continuación y descritos en función del contenido (que se elaborará más tarde):
+
+\begin{itemize}
+	\item \textbf{\textit{lazarillo-embedded}}: \cite{lazarillo-embedded}
+	\item \textbf{\textit{lazarillo-admin-frontend}}: \cite{lazarillo-admin-frontend}
+	\item \textbf{\textit{lazarillo-admin-backend}}: \cite{lazarillo-admin-backend}
+	\item \textbf{\textit{meta-lazarillo}}: \cite{meta-lazarillo}
+	\item \textbf{\textit{documentacion-tfm}}: \cite{documentacion-tfm}
+\end{itemize}
+
 
 \section{Sistema operativo}
 
@@ -28,6 +43,8 @@ En esta sección enumeraremos los distintos servicios y módulos específicos cr
 Veamos ahora una breve explicación del propósito que satisfacen los módulos software internos del robot.
 
 \subsubsection{lazarillo-hmi}
+
+La tecnología usada por esta aplicación, se ha decidido que sea el framework de \textbf{\textit{Qt}}, que pese a tener modalidades de licencias de pago, permite un uso \textit{open source}. Además, se trata de una tecnología con una amplia comunidad, una documentación muy rica y un gran soporte para dispositivos embebidos. Por otro lado, dispongo de amplia experiencia con dicha herramienta, lo que agiliza enormemente el tiempo de desarrollo.
 
 Se trata de la aplicación que muestra la interfaz táctil al usuario.
 

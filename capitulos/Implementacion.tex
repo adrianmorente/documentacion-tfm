@@ -41,6 +41,7 @@ Para empezar a trabajar con \textit{Yocto}, lo primero es elegir \textbf{la vers
 	\centering
 	\includegraphics[width=0.85\textwidth]{imagenes/yocto-releases.png}
 	\caption{La versión elegida es \textbf{\textit{Dunfell 3.1}} ya que lleva el suficiente tiempo en el mercado como para ser estable, y además es versión \textit{Long Term Support} y asegura soporte oficial hasta abril de 2024. Versiones más novedosas o no \textit{LTS} pueden no asegurar tanta estabilidad. - Fuente: \textit{Yocto Releases} \cite{yocto-releases}}
+	\label{yocto-releases}
 \end{figure}
 
 Acto seguido, lo que hacemos para continuar con la creación de nuestra propia distribución son varias cosas:
@@ -219,6 +220,7 @@ Una vez tenemos listo nuestro \textit{layer} y el archivo \textit{local.conf}, p
 	\centering
 	\includegraphics[width=0.95\textwidth]{imagenes/lazarillo-image-compilation.png}
 	\caption{Captura de pantalla de \textit{Ubuntu 22.04} sobre el Subsistema Linux de Windows, usado para la compilación del nuevo sistema operativo.}
+	\label{lazarillo-image-compilation}
 \end{figure}
 
 Llegados aquí, solo quedará esperar unas horas a que termine todo el proceso. Una vez finalizado, grabaremos el archivo \textbf{\textit{lazarillo-image-raspberrypi3.sdimg}} generado bajo el directorio \emph{build/tmp/deploy/} en la tarjeta de memoria que queramos usar en el robot, la insertamos en la \textit{Raspberry} correspondiente y probamos nuestro nuevo y flamante sistema operativo personalizado.\\
@@ -236,6 +238,7 @@ Basta con integrar esta sencilla aplicación dentro del sistema operativo, cambi
 	\centering
 	\includegraphics[width=0.3\textwidth]{imagenes/openembedded.jpg}
 	\caption{Imagen mostrada por \textit{psplash} al arranque de la máquina: logo de \textit{OpenEmbedded}, organización contribuidora activamente en el Proyecto \textit{Yocto} - Fuente: \textit{OpenEmbedded.org} \cite{openembedded}}
+	\label{openembedded}
 \end{figure}
 
 
@@ -244,10 +247,10 @@ Basta con integrar esta sencilla aplicación dentro del sistema operativo, cambi
 Una vez que hemos visto la integración completa del sistema operativo, en esta sección enumeraremos los distintos servicios y módulos específicos creados para \textit{Lazarillo} y describiremos el propósito para el que han sido programados. Como venimos comentando, habrá ciertas partes que serán enteramente embebidas en el robot, y por otro lado también existirán otros componentes software que estarán situados ``fuera''. Para hacernos una idea general de todos los entes involucrados en el software, prestemos atención al diagrama de la figura \ref{lazarillo-architecture}.\\
 
 \begin{figure}[h]
-	\label{lazarillo-architecture}
 	\centering
 	\includegraphics[width=\textwidth]{imagenes/lazarillo-architecture.png}
 	\caption{Diagrama mostrando la arquitectura del proyecto, incluyendo conexiones entre servicios y relaciones internas.}
+	\label{lazarillo-architecture}
 \end{figure}
 
 A la izquierda del todo, junto al agente denominado \textit{Admin} se ubican los dos servicios web involucrados que ya hemos mencionado (\textbf{lazarillo-admin}, arriba \textbf{frontend} y \textbf{backend} abajo). A su derecha encontramos un rectángulo grande que engloba todo el software enclaustrado (\textbf{lazarillo-embedded}) y para finalizar, la interfaz de usuario (gráfica táctil y sonora) con la que interactuarán los que necesiten de la atención de \textit{Lazarillo}.\\
@@ -257,7 +260,140 @@ Para explicar la implementación, separaremos todo el software en tres módulos:
 
 \subsection{lazarillo-embedded}
 
-TODO: entrar en detalles de diseño de software, servicios utilizados, arquitectura de los módulos comunes, magia hecha con CMake, etc.
+Si volvemos a mirar el diagrama \ref{lazarillo-architecture}, distinguimos el cuadrado blanco que incluye los módulos presentes en \textit{lazarillo-embedded}. Por un lado tenemos los comprendidos en el rectángulo blanco que se tratan de \textbf{librerías}, las cuales se enlazan al compilar a los \textbf{servicios}, representados por rectángulos grises (y comunicados sobre el búfer de comunicación en azul). En esta sección describiremos la razón de existencia de cada uno y el propósito que persiguen, empezando por las librerías y acabando por los programas que se ejecutan en el robot.\\
+
+Hagamos un pequeño inciso aquí para comentar que la compilación está gestionada con la herramienta \textit{CMake} \cite{cmake}, una opción escalable y muy útil para proyectos grandes. Permite establecer funciones y macros comunes para todos los componentes involucrados dentro de un proyecto, utilizando variables para customizar la compilación. Además, con el uso de \emph{cpack} también permite generar archivos \emph{.deb} entendibles por el sistema operativo para su posterior instalación.\\
+
+Antes de nada, veamos la estructura del proyecto hasta el primer nivel de directorios, sin entrar en cada uno, definiendo cada uno de ellos así como los ficheros presentes y la utilidad de cada uno, aunque algunos con más enjundia se desarrollarán más tarde:\\
+
+\textbf{NOTA:} los directorios se muestran en negrita cursiva y los archivos solo en cursiva.
+
+\begin{itemize}
+	\item \textit{\textbf{cmake/}ProjectSetup.cmake}: contiene el código común de \textit{CMake} para la correcta compilación del proyecto. Define las banderas de compilación, rutas donde localizar las librerías necesarias e implementa funciones y macros que utilizarán los servicios para enlazarse con las librerías de las que dependen (\textit{Qt}, \textit{Json}, \textit{Redis} y \textit{Systemd}).
+	\item \textit{\textbf{lazarillo-hmi/}}: subproyecto que implementa la aplicación gráfica mostrada en la pantalla táctil del robot.
+	\item \textit{\textbf{lazarillo-utils/}}: librería que añade objetos estáticos accesibles para todos los subproyectos. En esta fase solo contiene métodos estáticos para obtener la fecha y hora del sistema y así proveerla de forma estándar a los servicios.
+	\item \textit{\textbf{messages-definition/}}: este módulo no es en sí un servicio que se ejecute directamente en el sistema operativo sino una \textbf{librería} de la que se nutren los demás donde se definen los mensajes que utilizan internamente para comunicarse. Ésta a su vez se enlaza con el servicio que describiremos más tarde y cuyo fin es \textbf{serializar} los mensajes.
+	\item \textit{\textbf{messaging-broker/}}: esta librería es la que establece toda la comunicación con el servidor de \textit{Redis} para el manejo de \textbf{mensajería sobre \textit{PubSub}}. Contiene clases para gestionar la conexión y utiliza el patrón de diseño \textit{Factory} para la creación de los objetos que publican mensajes y se suscriben a tópicos. Al gestionar la conexión en solo este módulo, si se decidiera cambiar \textit{Redis} por otra alternativa, al ser un comportamiento heredado para los servicios, el cambio debería ser solo un trámite.
+	\item \textit{\textbf{motor-manager/}}: idealmente, este directorio contiene un nuevo servicio llamado \textit{motor-manager} cuya idea es la de \textbf{controlar los distintos motores y elementos electrónicos que permiten que el robot se mueva}. Contendría clases distintas por cada elemento conectado e intercambiaría mensajes con todos ellos. Desafortunadamente, \textbf{no ha llegado a implementarse} ninguna funcionalidad en esta fase del proyecto.
+	\item \textit{\textbf{serialization/}}: esta librería contiene los tipos de datos para \textbf{serialización} (y deserialización) utilizando el formato \textit{Json}. Realmente se podría prescindir de este módulo y almacenar todos los mensajes como texto plano sobre \textit{Redis} y enviarlos así a los servicios. Lo que permite la serialización es transformar los datos para almacenarlos en un búfer (o cualquier recipiente) y que luego puedan ser reconstruidos en el mismo o en otro dispositivo. Se sigue esta aproximación (\textit{por si acaso}) simplemente por dotar de algo más de escalabilidad al proyecto por si sigue creciendo y se quieren hacer más cosas con los mensajes.
+	\item \textit{\textbf{service-base/}}: aunque el nombre pueda inducir a pensar que se trate de un \textit{servicio}, realmente es una librería que incluye interfaces y clases que reutilizarán todos los servicios que quieran crearse posteriormente. Realiza acciones generales interesantes como \textbf{instanciar el bróker de mensajería} (mencionado arriba) y proveer de métodos que se ejecutarán tanto al inicio como al final del resto de programas directamente.
+	\item \textit{\textbf{test\_env/}}: si bien esta parte no ha llegado a probarse profusamente, el objetivo que persigue es el de crear un entorno de pruebas para el desarrollo en forma de contenedores de \textit{Docker}. Con un archivo \emph{docker-compose.yml} se levantan dos instancias de éstos, uno que simula los servicios instalados en el robot y otro que mantiene el servidor de \textit{Redis} donde se realiza la comunicación. Usando esto, es posible \textbf{probar el código del robot en nuestra máquina local}, ahorrando tiempo.
+	\item \textit{\textbf{web-gateway/}}: esta sencilla aplicación hace de \textit{gateway} entre el robot y el panel externo de administración. Mantiene un servidor \textit{WebSocket} que recibe los comandos de la web, los procesa y traduce a mensajes (de \textit{messages-definition}) que luego publica en \textit{Redis} para que las aplicaciones interesadas y suscritas los reciban. De esta forma, un administrador que usa el panel web puede enviar distintas órdenes.
+	\item \textit{.clang-format}: ésto no es más que una recomendación a desarrolladores. Si bien este archivo no aporta funcionalidad como tal al proyecto, sí que lo hace al desarrollo. \textit{ClangFormat} \cite{clang-format} se trata de una herramienta que permite dar formato automático al código conforme se escribe. Si se configura este archivo con el editor de texto y las variables siguiendo las \textbf{guías de estilo} que se acuerden con el equipo de desarrollo, todos los programadores involucrados podrán trabajar sobre un estilo común. Ésto evitará conflictos con el control de versiones cuando alguien inserta espacios sin percatarse o más saltos de línea de la cuenta.
+	\item \textit{build.sh}: este archivo es un \textbf{\textit{script}} realmente útil para el desarrollo. Internamente ejecuta los comandos de \textit{CMake} con sus parámetros necesarios, permitiendo customizar el proceso con argumentos simples como \emph{-j8} para utilizar 8 hilos en la compilación, \emph{-c d} para compilar en modo de depuración o \emph{--cpack} para generar los binarios de instalación si la compilación es exitosa. Véase la imagen \ref{lazarillo-build-sh}.
+	\item \textit{CMakeLists.txt}: finalmente, este es el archivo central del proyecto. Simplemente utiliza el código de la carpeta \textbf{\textit{cmake/}} para incluir el comportamiento general allí descrito y añade a la compilación cada uno de los módulos (exactamente las librerías y los servicios que ya hemos listado).
+\end{itemize}
+
+\begin{figure}[h]
+	\centering
+	\includegraphics[width=0.6\textwidth]{imagenes/lazarillo-build-sh.png}
+	\caption{Captura de pantalla del uso del script \emph{build.sh} para compilación de \textit{lazarillo-embedded}.}
+	\label{lazarillo-build-sh}
+\end{figure}
+
+\subsubsection{messages-definition}
+
+En el punto de implementación alcanzado a la hora de la entrega del proyecto no existen muchos mensajes, pero la librería se ha pensado de forma que sea sencillo añadir mensajes nuevos para los nuevos desarrolladores que quieran participar en ello y utilizar \textit{Lazarillo}.\\
+
+Para ilustrar este comportamiento, veremos dos clases: una \textbf{interfaz genérica} para todos los mensajes y una \textbf{clase objeto} de ejemplo que la implementa. Empecemos por la interfaz (por temas de espacio, se obvian del código las guardas y los comentarios. Si se quiere ver el archivo completo, véase el enlace adjunto en el título de cada fragmento):\\
+
+\textbf{\textit{i\_base\_message.h} \cite{i-base-message}}
+\begin{lstlisting}
+class IBaseMessage : public serialization::Serializable
+{
+public:
+	~IBaseMessage() {}
+
+	virtual std::string name() const = 0;
+
+	void setHeader(MessageHeader const &p_header)
+	{
+		m_header = std::make_shared<MessageHeader>(p_header);
+	}
+
+	MessageHeader getHeader() const
+	{
+		return (m_header) ? *m_header : getDefaultHeader();
+	}
+
+	MessageHeader getDefaultHeader() const;
+	{
+		MessageHeader header;
+		header.name = name();
+		return header;
+	}
+
+	virtual serialization::Serializer & serializePayload(serialization::Serializer &p_serializer) const = 0;
+
+	serialization::Serializer & serialize(serialization::Serializer &p_serializer) const override
+	{
+		return serializePayload(p_serializer);
+	}
+	
+private:
+	std::shared_ptr<MessageHeader> m_header;
+};
+\end{lstlisting}
+
+Vemos que esta clase abstracta hereda de \emph{serialization::Serializable}, presente en el módulo de \textbf{serialization} y que provee los métodos que han de sobreescribirse para añadir los campos al objeto serializado que se guardará en memoria.\\
+
+El mensaje abstracto utiliza una \textit{MessageHeader} que compone la \textbf{cabecera} que heredarán todos los mensajes. Tiene tres campos:
+
+\begin{itemize}
+	\item \textbf{name}: nombre del mensaje en cuestión, a cumplimentar por cada clase que herede de \textit{IBaseMessage}.
+	\item \textbf{source}: nombre del servicio que lo envía.
+	\item \textbf{timestamp}: fecha y hora en la que se compone el mensaje para su envío.
+\end{itemize}
+
+Además de proveer métodos de acceso para la cabecera, declara los métodos de serialización y deserialización que implementarán cada una de las clases hijas. Un detalle a considerar en éstos es que reciben y devuelven referencias al objeto de serialización; esto se hace para poder concatenar los campos en una sola línea. Ejemplo:
+
+\begin{lstlisting}
+# Sin usar referencias como argumento y retorno:	
+p_serializer.add("campo1");	
+p_serializer.add("campo2");	
+p_serializer.add("campo3");
+return p_serializer;
+
+# Usando referencias:
+return p_serializer.add("campo1").add("campo2").add("campo3");
+\end{lstlisting}
+
+Veamos ahora un ejemplo de mensaje que implemente dicha interfaz. Usaremos la clase \textit{EventConnectionStatus}, que representa el mensaje que se envía del servicio \textbf{web-gateway} al resto de servicios cuando cambia la conexión por \textit{WebSocket} con el portal de administración:\\
+
+\textbf{\textit{event\_connection\_status.h}} \cite{event-connection-status}
+\begin{lstlisting}
+class EventConnectionStatus : public IBaseMessage
+{
+public:
+	static constexpr char const *NAME{"EVENT_CONNECTION_STATUS"};
+	
+	explicit EventConnectionStatus(models::ConnectionStatus p_status)
+	: m_status{p_status} {}
+	
+	explicit EventConnectionStatus(serialization::Deserializer &p_deserializer)
+	{
+		p_deserializer.extract("Status", m_status);
+	}
+	
+	serialization::Serializer & serializePayload(serialization::Serializer &p_serializer) const final
+	{
+		IBaseMessage::serializePayload(p_serializer);
+		return p_serializer.add("Status", m_status);
+	}
+	
+	std::string name() const final { return NAME; }
+	
+private:
+	models::ConnectionStatus m_status{models::ConnectionStatus::UNKNOWN};
+};
+\end{lstlisting}
+
+Podemos ver que utilizando esta aproximación, el código necesario para crear un nuevo mensaje es bastante sencillo. Simplemente sobreescribe el nombre con el que se identificará al mensaje y especifica qué campos han de añadirse o leerse. La variable que se utiliza en cuestión (\emph{m\_status}) no es más que un enumerado con los posibles estados de la conexión.
+
+
+\subsubsection{service-base}
+
+Este módulo define el esqueleto abstracto de cada uno de los servicios del robot. Heredando el comportamiento de esta librería, cada uno de los nuevos servicios se ahorran procedimientos rutinarios como instanciar la conexión con la base de datos y el bróker de mensajería.
 
 \subsubsection{lazarillo-hmi}
 
@@ -265,17 +401,10 @@ La tecnología usada por esta aplicación, se ha decidido que sea el framework d
 
 Se trata de la aplicación que muestra la interfaz táctil al usuario.
 
-\subsubsection{messages-definition}
-
-Este módulo no es en sí un servicio sino una \textbf{librería} donde se definen los mensajes que utilizan internamente el resto de servicios para comunicarse.
-
-\subsubsection{service-base}
-
-Este módulo define el esqueleto abstracto de cada uno de los servicios del robot. Heredando el comportamiento de esta librería, cada uno de los nuevos servicios se ahorran procedimientos rutinarios como instanciar la conexión con la base de datos y el bróker de mensajería.
-
 \subsubsection{web-gateway}
 
 Este servicio es el \textit{puerto de entrada} a Lazarillo. Realiza la comunicación mediante \textit{Websockets} con \textbf{\textit{lazarillo-admin}}, el portal web a través del cual un técnico puede administrar los distintos robots. \textit{\textbf{Web-gateway}} actúa como intérprete de los mensajes provenientes del \textit{socket} y los publica en la mensajería interna del robot (basada en \textit{Redis}) para informar al resto de servicios de cualquier acción emitida por el servidor.
+
 
 
 \subsection{lazarillo-admin-frontend}

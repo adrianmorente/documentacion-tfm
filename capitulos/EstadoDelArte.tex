@@ -12,6 +12,7 @@ Un ejemplo de estos es la \textit{Roomba} de la marca \textit{iRobot}, la conoci
 	\centering
 	\includegraphics[width=0.7\textwidth]{imagenes/irobot-sensors.png}
 	\caption{Ejemplo de sensores en una \textit{Roomba} - Fuente: \textit{ResearchGate} \cite{roomba-sensors-rg}}
+	\label{irobot-sensors}
 \end{figure}
 
 Otro ejemplo mucho más claro de robot lo encontramos en \textbf{\textit{Pepper}} \cite{pepper-robot} (obra de \textit{SoftBank Robotics}), un computador con apariencia \textit{humanoide} con hasta 20 grados de libertad que acepta interacción a través de una pantalla táctil, además de incorporar \textbf{reconomiento vocal} en 15 lenguajes diferentes. Por si fuera poco, a través del \textbf{reconocimiento facial} que hace de los usuarios es capaz de inferir su estado emocional.\\
@@ -20,6 +21,7 @@ Otro ejemplo mucho más claro de robot lo encontramos en \textbf{\textit{Pepper}
 	\centering
 	\includegraphics[width=0.7\textwidth]{imagenes/pepper-hospital.jpg}
 	\caption{El robot humanoide Pepper proporciona atención a los pacientes en hospitales de Barcelona, brindándoles apoyo moral y entretenimiento - Fuente: \textit{Noticias de Navarra} \cite{pepper-noticias}}
+	\label{pepper-hospital}
 \end{figure}
 
 Si bien el conjunto de avances de inteligencia artifical que realizan los robots de este tipo son espléndidos, no hace falta irse a un plano tan alto para hablar de robótica; ni aunar medidas tan avanzadas de detección y reacción ante el entorno, que también pueden ser usadas por elementos inteligentes que sin embargo no llegan a ser considerados como ``robots''. Podemos encontrar un ejemplo en el \textit{Autopilot}, que es como llama la compañía automovilística de vehículos eléctricos \textit{Tesla} a su sistema de conducción automática \cite{tesla-ai}. Los complejísimos algoritmos de \textbf{visión computacional} que tienen lugar en el vehículo a la hora de observar el entorno en busca de otros coches, peatones, señales y obstáculos; también pasan por un entrenamiento de modelos de inteligencia artificial intenso. La diferencia en el uso de estos, es que (al menos actualmente), aún no existe la conducción plenamente autónoma, y por seguridad aún se requiere que haya un conductor al volante. ¿Podríamos entonces establecer el límite entre lo que es un ``robot'' y lo que no en función de si es necesaria la interacción humana?\\
@@ -42,6 +44,7 @@ Si no podemos asumir el presupuesto de una plataforma ya montada o simplemente q
 	\centering
 	\includegraphics[width=0.9\textwidth]{imagenes/zowi-robot-componentes.jpg}
 	\caption{\textit{Zowi}, ejemplo de robot basado en Arduino mas sensores - Fuente: \textit{Balara} \cite{zowi-balara}}
+	\label{zowi-components}
 \end{figure}
 
 Esta placa de desarrollo contiene un microcontrolador que permite ser programado en código C muy fácilmente, pero está limitado a eso. Si queremos utilizar un sistema que nos permita gestionar más cosas que la simple ejecución de un código, como un sistema operativo completo, deberíamos dar el salto a algo más parecido a un ordenador común, para lo que puede servirnos la conocida \textit{Raspberry Pi} \cite{raspberry-pi}. Existen otras alternativas de la misma gama provenientes de \textit{Asus} o de \textit{NXP} \cite{nxp-imx}, pero nos ceñiremos a la primera ya que está muy enfocada al sector educativo y al público joven y goza de una comunidad muy numerosa. Lo que todos estos dispositivos comparten son diversas conexiones a través de las cuales podemos añadir los elementos que mencionábamos previamente para nuestro proyecto de robot, además de permitirnos acceso a la configuración de su sistema operativo (o incluso podemos confeccionar uno a nuestra medida, como veremos en el siguiente apartado).\\
@@ -50,6 +53,7 @@ Esta placa de desarrollo contiene un microcontrolador que permite ser programado
 	\centering
 	\includegraphics[width=0.75\textwidth]{imagenes/asus-tinker-conexiones.png}
 	\caption{\textit{Tinker board}, la alternativa de \textit{Asus} - Fuente: \textit{Asus.com} \cite{asus-tinker}}
+	\label{asus-tinker}
 \end{figure}
 
 
@@ -101,6 +105,7 @@ Imaginemos que tenemos un nodo \textbf{principal} que representa el cerebro del 
 	\centering
 	\includegraphics[width=0.7\textwidth]{imagenes/ipc.png}
 	\caption{Formas de comunicación \textit{IPC} - Fuente: \textit{GeeksforGeeks.org} \cite{ipc}}
+	\label{ipc-img}
 \end{figure}
 
 El método de comunicación mediante \textit{IPC} más inmediato es el uso de \textit{Shared memory} o \textbf{memoria compartida}, que consiste literalmente en reservar un espacio de la memoria lógica para que todos los procesos cooperantes hagan uso de un espacio común donde leer y escribir variables compartidas. Si bien ésto es ágil y rápido, mi experiencia trabajando con esta metodología en proyectos grandes es que si no se tiene especial cuidado a la hora de diseñar qué datos intervienen y su procedencia, a largo plazo ésto produce un gran \textbf{acoplamiento} en el software involucrado.\\
@@ -123,6 +128,7 @@ El funcionamiento de éste es simple y permite implementar \textbf{arquitecturas
 	\centering
 	\includegraphics[width=0.7\textwidth]{imagenes/pubsub.png}
 	\caption{Mecánica \textit{PubSub}. Dos servicios publican sobre un mismo tópico para que otros tres reciban su contenido inmediatamente - Fuente: \textit{Amazon AWS} \cite{whats-pubsub}}
+	\label{pubsub-img}
 \end{figure}
 
 Sobre \textit{PubSub}, encontramos también el \textbf{servicio de mensajería \textit{MQTT}}, que funciona de forma similar. En la imagen siguiente. vemos que ahora se sitúan al \textbf{publicador} y al \textbf{suscriptor} a ambos lados de un \textbf{bróker}, que es el responsable de notificar a cada uno de los servicios suscritos cuando se ha añadido un mensaje a su tópico de interés.\\
@@ -131,6 +137,7 @@ Sobre \textit{PubSub}, encontramos también el \textbf{servicio de mensajería \
 	\centering
 	\includegraphics[width=0.6\textwidth]{imagenes/protocolos-iot-pubsub.png}
 	\caption{Mensajería \textit{MQTT} con patrón \textbf{publicador/suscriptor}. El bróker intermedio es quien recibe los mensajes que van a cada tópico y notifica a cada servicio suscrito. - Fuente: \textit{Luis Llamas} \cite{mqtt-pubsub}}
+	\label{iot-pubsub}
 \end{figure}
 
 En mi experiencia, el modelo \textit{PubSub} es el más cómodo de utilizar una vez que el proyecto ya está preparado para trabajar en él y añadir funcionalidades, además de gozar de una gran \textbf{escalabilidad}, ya que añadir nuevos mensajes, tópicos y servicios es totalmente transparente y práctico. Bien es cierto que para no reinventar la rueda, es conveniente utilizar librerías que ya implementen este paradigma, como \textit{Redis} o \textit{ROS}, que mencionábamos antes.\\
@@ -150,6 +157,7 @@ La primera alternativa que nos encontramos se trata del conocido protocolo \text
 	\centering
 	\includegraphics[width=0.7\textwidth]{imagenes/http.png}
 	\caption{Funcionamiento del protocolo \textit{HTTP}. Un cliente realiza una petición a través de la red, el servidor recolecta los datos necesarios, los envía al cliente y finaliza la conexión. - Fuente: \textit{Research hubs} \cite{http-image}}
+	\label{http-img}
 \end{figure}
 
 Una alternativa que encontramos hoy en día al clásico \textit{HTTP} es el protocolo \textbf{\textit{WebSockets}}, que de acuerdo con la documentación para desarrolladores de \textit{Mozilla}: \textit{``es una tecnología que permite abrir una sesión de comunicación \textbf{interactiva} entre el cliente y el servidor''} \cite{ws_protocol}.\\
@@ -166,6 +174,7 @@ Las diferencias entre éste y el anterior son:
 	\centering
 	\includegraphics[width=0.8\textwidth]{imagenes/ws_vs_http.png}
 	\caption{La diferencia entre la conexión en \textit{WebSocket} y \textit{HTTP} la vemos en la última línea de cada diagrama. En el primer caso el canal permanece abierto y en el segundo se cierra tras la respuesta del servidor. - Fuente: \textit{Wallarm.com} \cite{ws_connection}}
+	\label{ws-vs-http}
 \end{figure}
 
 Para terminar con esta sección, cabe recordar también otra vez \textbf{\textit{MQTT}}, que pese a no ser un protocolo como tal, permitirá orquestar los robots en torno a un servidor de forma que puedan compartir un canal de \textbf{mensajería \textit{push}} sobre un servidor acordado. Este elemento actuaría como \textbf{nodo principal} que podría publicar en distintos tópicos, y los robots actuarían como nodos \textbf{secundarios} y suscritos.\\

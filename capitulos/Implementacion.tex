@@ -910,13 +910,255 @@ Para terminar, comprobamos que nuestra aplicación se está ejecutando correctam
 	\label{docker-run}
 \end{figure}
 
+Para terminar, pasemos a ver el servicio de \textit{frontend} que aprovecha los datos aquí manejados.\\
+
 
 \subsection{lazarillo-admin-frontend}
 
+Finalmente llegamos a la aplicación que hará las veces de panel de administración para técnicos que deban administrar los robots, supervisar que todo está bien y, si procede, enviarles según qué comandos. La aplicación aquí descrita está implementada en \textbf{\textit{React}} y \textbf{\textit{Node/JavaScript}} utilizando la herramienta de creación de apps basadas en \textit{React} llamada \textbf{\textit{Create React App}} \cite{create-react-app}, que permite inicializar un proyecto con todo lo necesario tan solo lanzando un comando. Para poder usarla es necesario tener instalados los paquetes de \textit{Node} y su gestor de paquetes: \textit{NPM}.\\
+
+Una vez que el comando ha terminado de preparar el proyecto, se habrá creado en la carpeta un archivo llamado \emph{package.json} que sirve para describir la aplicación, listar dependencias y enumerar comandos útiles tanto para el desarrollo como para el despliegue. Veamos su contenido (obviando la parte de las dependencias ya que las comentaremos independientemente a continuación):\\
+
+\textbf{\textit{\href{https://github.com/adrianmorente/lazarillo-admin-frontend/blob/main/package.json}{package.json}}}
+\begin{lstlisting}
+{
+	"name": "lazarillo-admin",
+	"version": "1.0.0",
+	"author": "Adrian Morente Gabaldon",
+	"license": "GPL-3.0-or-later",
+	"description": "Web server which provides administration tools for Lazarillo robots.",
+	"private": true,
+	"dependencies": { ... },
+	"scripts": {
+		"start": "react-scripts start",
+		"build": "react-scripts build",
+		"test": "react-scripts test"
+	},
+	"eslintConfig": {
+		"extends": [
+			"react-app",
+			"react-app/jest"
+		]
+	},
+	"browserslist": {
+		"production": [
+			">0.2%",
+			"not dead",
+			"not op_mini all"
+		],
+		"development": [
+			"last 1 chrome version",
+			"last 1 firefox version",
+			"last 1 safari version"
+		]
+	}
+}
+\end{lstlisting}
+
+Como vemos los primeros campos son meramente descriptivos sobre el proyecto en cuestión, mientras que el de ``\textit{scripts}'' habilita cuatro llamadas del tipo \emph{npm start} para diversas acciones:
+
+\begin{itemize}
+	\item \textbf{start}: compila el proyecto y lanza un servidor local que ofrece la web implementada.
+	\item \textbf{build}: realiza una compilación optimizada y ofuscada para ser desplegada en \textit{producción}.
+	\item \textbf{test}: ejecuta los programas de tests que tenga el proyecto, si los hubiere.
+\end{itemize}
+
+Por otro lado, para llegar a ofrecer una página web usable, adaptable y con una interfaz agradable que siga las guías de estilo de lo que estamos acostumbrados a ver, hacemos uso de la librería \textbf{\textit{Material UI (MUI)}} \cite{material-ui}. Contiene componentes web ya preparados para su uso y fáciles de parametrizar para nuestro interés. Estas piezas de software se componen de lenguajes de marcado \textit{HTML} y \textit{CSS} para el esqueleto y el diseño, además del lenguaje de programación \textit{JavaScript} para la lógica.\\
+
+Adicionalmente, para seguir buenas prácticas y trabajar de acuerdo con el paradigma de \textit{React}, en lugar de guardar los datos de interés en los objetos que implementamos, se utiliza un almacén para manejo y persistencia de estados llamado \textbf{\textit{Redux}} \cite{redux}. Hacer ésto evita que el usuario de la web se vea obligado a actualizar la página y que ésta solo renderice automáticamente los cambios en los componentes cuando cambie su estado interno.\\
 
 
+\subsubsection{Estructura del proyecto}
+
+Si miramos la lista de directorios y ficheros en \href{https://github.com/adrianmorente/lazarillo-admin-frontend}{el repositorio correspondiente} encontramos lo siguiente:\\
+
+\begin{itemize}
+	\item \textbf{\textit{public/}}: directorio donde se generan los ficheros que realmente se sirven a los clientes que acceden a la web. El principal es \textit{index.html} que es la página mostrada, el resto suelen ser imágenes y demás recursos necesarios.
+	\item \textbf{\textit{src/}}: esta carpeta incluye el código desarrollado para esta implementación. Lo comentaremos más detenidamente más adelante.
+	\item \textbf{\textit{Dockerfile}}: al igual que en el proyecto de \textit{backend}, proveemos un fichero \textit{Dockerfile} definiendo una imagen que poder desplegar la aplicación en un contenedor \textit{Docker}. Éste es más simple que en el otro subproyecto ya que solo inicia un servicio en lugar de dos.
+	\item \textbf{\textit{docker-compose.yml}}: siguiendo lo comentado arriba, con la configuración descrita en este archivo se inician el contenedor solicitado.
+	\item \textit{package.json}: (comentado anteriormente).
+\end{itemize}
+
+Empecemos por comentar el código implementado para después pasar a ver \textit{la Dockerización} (palabra que en castellano no existe pero que sería la traducción literal de ``dockerize'', término inventado y muy usado en internet para hacer referencia al acto de embeber una aplicación en un contenedor de \textit{Docker}).\\
 
 
+\subsubsection{Código implementado}
+
+En \href{https://github.com/adrianmorente/lazarillo-admin-frontend/tree/main/src}{la carpeta \textit{src}} encontramos la siguiente estructura que ordena los distintos ficheros fuente:
+
+\begin{itemize}
+	\item \textbf{\textit{components/}}: la carpeta de componentes contiene los elementos independientes que pueden ser renderizados en pantalla por \textit{React}.
+	\item \textbf{\textit{redux/}}: contiene el código referente a la herramienta \textit{Redux} para gestionar los estados de los datos que se manejan en el proyecto, que en este caso solo son los dispositivos \textit{Lazarillo}.
+	\item \textit{App.js}: es el ejecutable de la aplicación. En él se declaran las distintas rutas que contiene la web.
+	\item \textit{ViewLayer.jsx}: es un panel auxiliar del que heredan los componentes mostrados en pantalla para utilizar el mismo estilo.
+\end{itemize}
+
+Empecemos por ver el código del principal, \textit{App.js}:\\
+
+\begin{lstlisting}
+const appTheme = createTheme({
+	palette: {
+		mode: 'dark',
+	},
+});
+
+function App() {
+  return (
+    <BrowserRouter>
+      <ThemeProvider theme={appTheme}>
+        <CssBaseline>
+          <Box sx={{ display: 'flex' }}>
+            <Provider store={store}>
+              <Header />
+              <Routes>
+                <Route exact path="/" element={<Robots />} />
+                <Route exact path="/about" element={<AboutView />} />
+              </Routes>
+            </Provider>
+          </Box>
+        </CssBaseline>
+      </ThemeProvider>
+    </BrowserRouter>
+  );
+}
+
+export default App;
+\end{lstlisting}
+
+Se instancia el objeto \textit{App} añadiendo diversos componentes que explicaremos por separado:
+
+\begin{itemize}
+	\item \textbf{\textit{BrowserRouter}}: habilita que se puedan usar rutas dentro de la página.
+	\item \textbf{\textit{ThemeProvider}}: hace que la web se muestre con el tema definido arriba (\textit{appTheme}, el cual establece el modo oscuro).
+	\item \textbf{\textit{Provider}}: relaciona la aplicación con el almacén de datos y estados basado en \textit{Redux} que antes anunciamos.
+	\item \textbf{\textit{Header}}: se trata de un componente propio definido en la carpeta \textit{components/}, que incluye la barra de aplicación superior de la página y el \textbf{\textit{drawer}} (o panel lateral).
+	\item \textbf{\textit{Route}}: cada objeto \textit{route} añade una nueva ruta a la web. En este caso solo hay dos: la principal (\emph{/}) y la de información (\emph{/about}). Cada una se asocia a un componente, en este caso \textbf{Robots} y \textbf{AboutView} respectivamente, ambos en la carpeta \textit{components}.
+\end{itemize}
+
+Visto esto, centrémonos en los componentes interesantes que enrutamos. Por un lado la lista de dispositivos en \textit{Robots} y en otro la de \textit{AboutView} para mostrar una información muy básica sobre el proyecto que crecería con el tiempo.\\
+
+\textbf{\textit{components/Robots.js}}
+\begin{lstlisting}
+const Robots = () => {
+  const dispatch = useDispatch();
+  const { robots, updatedRobots } = useSelector((state) => state.robots);
+
+  if (!updatedRobots) {
+    fetch("http://localhost:5000/devices").then((res) =>
+      res.json()
+    ).then((data) => {
+      dispatch(fetchRobotsList(data.data));
+    });
+  }
+
+  return (
+    <ViewLayer>
+      <Paper>
+        <Grid container alignItems="center" padding={2}>
+          {
+            robots.map((item, index) =>
+              <Grid item key={index}>
+                <RobotComponent key={index} item={item}></RobotComponent>
+              </Grid>
+            )
+          }
+        </Grid>
+      </Paper>
+    </ViewLayer>
+  );
+}
+export default Robots;
+\end{lstlisting}
+
+En primer lugar, se inicializa el \textit{dispatcher} para guardar en el almacén de \textit{Redux} la lista de dispositivos. Se hace la llamada al \textit{endpoint} de \textbf{\textit{lazarillo-admin-backend}} para obtener la colección de robots que ha de mostrar al administrador en la web. \textbf{Nota}: algo que queda por arreglar aquí es que la solicitud se haga periódicamente con un temporizador.\\
+
+Para terminar, se itera sobre la lista para añadir un objeto \textit{Paper} a la cuadrícula.\\
+
+Para ilustrar cómo funciona el almacén de \textit{Redux}, necesitamos ver dos clases: un \textbf{\textit{reducer}}, que actúa como organizador de los datos que recibe para que puedan ser guardados después, y una \textbf{\textit{store}} que los almacena realmente.\\
+
+\textbf{\textit{redux/robotReducer.js}}
+\begin{lstlisting}
+import { createSlice, PayloadAction } from '@reduxjs/toolkit'
+
+const initialState = {
+  robots: [],
+  updatedRobots: false,
+}
+
+const robotsSlice = createSlice({
+  name: 'robots',
+  initialState,
+  reducers: {
+    fetchRobotsList(state, action) {
+      state.robots = action.payload;
+      state.updatedRobots = true;
+      console.log("Robots list: ", state.robots);
+    }
+  }
+})
+
+export const { fetchRobotsList } = robotsSlice.actions;
+export default robotsSlice.reducer;
+\end{lstlisting}
+
+Utilizando el set de herramientas de \textit{Redux} se crea un \textbf{\textit{slice}}, que es una ``porción de datos'' de las que se guardan en el almacén. El estado de arranque (representado por \emph{initialState}) inicializa la lista a un \textit{array} vacío, y utiliza un valor booleano para controlar si se necesita realizar una nueva petición de lectura de dispositivos. Con el temporizador que hemos mencionado antes que podría añadirse, aquí se automatizaría dicha lectura.\\
+
+El método \emph{fetchRobotsList} es llamado desde el componente \textbf{\textit{Robots}} para asignar el valor al documento cuando la lectura ha sido exitosa. Hecho esto, se exporta el \textit{reducer} para utilizarse en la \textit{store} que vemos a continuación:
+
+\textbf{\textit{redux/store.js}}
+\begin{lstlisting}
+import { configureStore } from "@reduxjs/toolkit";
+import robotReducer from "./robotReducer";
+
+export const store = configureStore({
+  reducer: {
+    robots: robotReducer,
+  }
+})
+\end{lstlisting}
+
+Esta clase es muy sencilla pero eficaz. Gracias a \textit{Redux} basta con llamar al método \emph{configureStore} para crear un almacén con los tipos de dato descritos por los \textit{reducers} especificados por parámetros del documento.\\
+
+Volviendo a las vistas, veamos ahora la sencilla pestaña de información:\\
+
+\textbf{\textit{components/AboutView.js}}
+\begin{lstlisting}
+const AboutView = () => {
+  return (
+    <ViewLayer>
+      <Paper elevation={8} sx={{ m: 1, p: 2, width: 250 }}>
+        <Grid container>
+          <Grid item xs={12}>
+            <Typography variant="h4">Proyecto: Lazarillo Admin Frontend</Typography>
+          </Grid>
+          <Grid item xs={4}>
+            <Typography variant="h5">Realizado por:</Typography>
+          </Grid>
+          <Grid item xs={8}>
+            <Typography variant="h5">Adrian Morente</Typography>
+          </Grid>
+          <Grid item xs={12}>
+            <Typography variant="h6">ETSIIT - Universidad de Granada</Typography>
+          </Grid>
+        </Grid>
+      </Paper>
+    </ViewLayer>
+  );
+}
+export default AboutView;
+\end{lstlisting}
+
+Solamente muestra en el componente central de la pantalla unos textos diciendo el autor del proyecto. Una idea futura sería automatizar la versión actual del software con cada \textit{release} nueva para que se muestre aquí.\\
+
+Aunque en la fase alcanzada del desarrollo es una versión muy simple, para ver cómo luce actualmente la página web implementada, véase la figura \ref{lazarillo-admin-frontend}.\\
+
+\begin{figure}[h]
+	\centering
+	\includegraphics[width=0.85\textwidth]{imagenes/lazarillo-admin-frontend.png}
+	\caption{Captura de pantalla de \textit{\textbf{lazarillo-admin-frontend}} mostrando el panel lateral y tres dispositivos no conectados.}
+	\label{lazarillo-admin-frontend}
+\end{figure}
 
 
 

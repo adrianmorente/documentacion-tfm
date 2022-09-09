@@ -1,1 +1,21 @@
-\chapter{Conclusiones}
+\chapter{Conclusiones y trabajos futuros}
+
+Un buen \textit{brainstorming} sobre el desarrollo de una idea novedosa y (se supone que) útil siempre es motivador y consigue animar a un programador a llevar la idea a la práctica, intentando la consecución del mayor número de requisitos posibles. Sin embargo, el tiempo siempre es uno de los factores más determinantes a la hora de dictaminar cómo de lejos se llega con el proyecto, por lo que siempre existe la posibilidad de que no se alcance a finalizar todas las ideas que rondan la cabeza.\\
+
+Personalmente, tener que compaginar mi jornada completa laboral con el desempeño de este trabajo ha hecho mucha mella en lo que fue la primera idea del proyecto. Me habría gustado poder acercarme realmente más al hardware, disponer de un robot sencillito al que implementar unas directivas muy básicas de movimiento pero que realmente hiciesen tangible el trabajo desarrollado en ésto.\\
+
+También me gustaría destacar que, después de años de experiencia profesional, realmente quería tomar buenas decisiones, plantear bien la arquitectura, usar las herramientas idóneas para cada caso, establecer buenas prácticas a largo plazo para asegurar que si yo no puedo hacerlo, alguien podría acceder a los repositorios y darle continuidad a estas finalidades que han quedado en el limbo.\\
+
+Cabe destacar que dada la naturaleza libre del proyecto, cualquier interesado o interesada podría continuar con la parte del desarrollo que más le interese; ya que esta idea nació como una herramienta abierta a la que poder contribuir y de la que cualquiera pueda sacar utilidad.\\
+
+Dicho esto, en este capítulo comentaremos algunas de las ideas iniciales que no llegaron a finalizarse a tiempo para la entrega y cuáles se decidieron postergar en el tiempo para un futuro desarrollo.\\
+
+Para empezar, lo más ligado a lo que pretendía ser el epicentro del proyecto: la \textbf{robótica}. Sería idóneo instalar el sistema operativo preparado al efecto en un robot real cuyo núcleo de computación sea la \textit{Raspberry}. Tras esto, conectar algunos motores y unas ruedas para realizar un movimiento autónomo aunque fuese muy sencillo (implementando el módulo \textbf{\textit{motor-manager}} que se comentó en la arquitectura).\\
+
+En cuanto al resto del código embebido en el cargador, queda pendiente la aplicación embebida mostrada en la pantalla táctil. En ella el usuario introducirá el destino al que quiere ir, el despacho del que desea saber cómo llegar, etc.\\
+
+En cuanto a los servicios web, un aspecto importante que no llegó a gestionarse fue el de la autenticación del administrador. Obviamente para una gestión experta de dispositivos delicados, no cualquiera debería tener acceso a las herramientas, por lo que los desarrolladores del servicio web deberían crear cuentas autorizadas para que los administradores puedan autenticarse en el portal.\\
+
+Hilando un poco más fino, los archivos \textit{Dockerfile} con los que se generan los contenedores incluyen variables de entorno en texto plano como usuarios y contraseñas de la base de datos. Lógicamente esto para un proyecto de prueba es aceptable temporalmente pero orientado a desplegarse en producción, lo ideal es leer los valores de variables del sistema local pero que no aparezcan en ningún fichero.\\
+
+En cuanto a la conectividad, ya lo hemos ido viendo, pero el socket que conecta la web con el robot debería hacer comprobaciones periódicas de la lista de dispositivos existentes.\\

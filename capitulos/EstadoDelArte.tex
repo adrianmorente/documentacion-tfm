@@ -92,7 +92,19 @@ Por otro lado, cuando se habla de robótica suele salir a colación \textit{\tex
 	\item Contiene herramientas de simulación que facilitan el desarrollo del robot antes de requerir el uso físico de electrónica real (lo que puede suponer un ahorro en costes de material).
 \end{itemize}
 
-Para un uso modesto, quizá el aspecto más interesante de utilizar \textit{ROS} puede resultar la comunicación entre distintos \textbf{nodos}. Podemos entender como \textit{nodo} cada una de las partes independientes del robot que colabora con el resto. Para un robot hipotético que se desliza sobre el suelo y que mueve los brazos para agarrar cosas, podríamos distinguir entre sus nodos la plataforma móvil, las manos, las cámaras que observan el entorno y un largo etcétera. En cuanto a cómo se comunican estos nodos, podemos plantearlo como un problema de comunicación de distintos servicios cualesquiera. Veamos esto en el siguiente apartado.\\
+Para un uso modesto, quizá el aspecto más interesante de utilizar \textit{ROS} puede resultar la comunicación entre distintos \textbf{nodos}. Podemos entender como \textit{nodo} cada una de las partes independientes del robot que colabora con el resto. Para un robot hipotético que se desliza sobre el suelo y que mueve los brazos para agarrar cosas, podríamos distinguir entre sus nodos la plataforma móvil, las manos, las cámaras que observan el entorno y un largo etcétera. En cuanto a cómo se comunican estos nodos, podemos plantearlo como un problema de comunicación de distintos servicios cualesquiera. Veremos esto en el siguiente apartado.\\
+
+Para finalizar con el apartado de programación, un apunte: deberemos tener siempre presentes los \textbf{principios \textit{SOLID} de la programación orientada a objetos}, que muy eficazmente se describen en la documentación de \textbf{\textit{Digital Ocean}} \cite{solid}:
+
+\begin{itemize}
+	\item \textbf{S} \textit{(Single) - Responsabilidad única}: cualquier clase o módulo debe cumplir un solo propósito, por lo que ese debería ser su único trabajo y razón para cambiar su implementación.
+	\item \textbf{O} \textit{(Open) - Abierto-cerrado}: los objetos deben estar abiertos para extensión y cerrados para modificación.
+	\item \textbf{L} \textit{(Liskov) - Sustitución de Liskov}: ``cada clase derivada debe ser sustituible por su clase base''.
+	\item \textbf{I} \textit{(Interface) - Segregación de interfaz}: una clase no debe forzarse a implementar una interfaz que no usa o depender de métodos que no va a utilizar.
+	\item \textbf{D} \textit{(Dependency) - Inversión de dependencia}: las entidades deben depender de interfaces y no clases concretas (ya que éstas pueden cambiar sin que lo esperemos).
+\end{itemize}
+
+Teniendo esto en mente y cumpliendo estas directivas, podremos implementar un código más escalable y limpio. Además, el uso de interfaces y clases abstractas permitirá reemplazar piezas de software sin afectar a las clases derivadas.\\
 
 
 \subsubsection{¿Cómo se comunican los nodos de un robot?}

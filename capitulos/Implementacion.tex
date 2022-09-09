@@ -244,7 +244,15 @@ Basta con integrar esta sencilla aplicación dentro del sistema operativo, cambi
 
 \section{Arquitectura de Lazarillo}
 
-Una vez que hemos visto la integración completa del sistema operativo, en esta sección enumeraremos los distintos servicios y módulos específicos creados para \textit{Lazarillo} y describiremos el propósito para el que han sido programados. Como venimos comentando, habrá ciertas partes que serán enteramente embebidas en el robot, y por otro lado también existirán otros componentes software que estarán situados ``fuera''. Para hacernos una idea general de todos los entes involucrados en el software, prestemos atención al diagrama de la figura \ref{lazarillo-architecture}.\\
+Una vez que hemos visto la integración completa del sistema operativo, en esta sección enumeraremos los distintos servicios y módulos específicos creados para \textit{Lazarillo} y describiremos el propósito para el que han sido programados. Como venimos comentando, habrá ciertas partes que serán enteramente embebidas en el robot, y por otro lado también existirán otros componentes software que estarán situados ``fuera''.\\
+
+Una idea que se ha tenido muy presente durante el desarrollo del proyecto es la de cumplir los famosos \textbf{principios \textit{SOLID}} de la programación orientada a objetos. Véase en el capítulo de \textit{Estado del arte} cuáles son cada uno de los puntos.\\
+
+Para cumplir esto, se implementan módulos separados de \textbf{responsabilidad única}, lo que resulta en clases no muy grandes y fácilmente mantenibles con un propósito muy claro y que colaboran entre sí. Además, se utilizan interfaces generales que permiten luego a las clases derivadas gestionar su comportamiento más concreto.\\
+
+Se persigue una arquitectura que carezca de \textbf{acoplamiento} y el uso de interfaces ayuda a que ciertos componentes software sean luego intercambiables y no estrictamente dependientes. Por ejemplo: si se desea no utilizar \textit{Redis} para la mensajería interna y se intercambia por \textit{MQTT}, este cambio solo se realiza en el módulo \textbf{\textit{messaging-broker}} y resulta totalmente transparente al resto de servicios, que directamente heredan ese comportamiento.\\
+
+Para hacernos una idea general de todos los entes involucrados en el software, prestemos atención al diagrama de la figura \ref{lazarillo-architecture}.\\
 
 \begin{figure}[h]
 	\centering
@@ -291,13 +299,15 @@ Antes de nada, veamos la estructura del proyecto hasta el primer nivel de direct
 	\label{lazarillo-build-sh}
 \end{figure}
 
+A partir de ahora, veremos el código más relevante para entender la lógica del proyecto. Por temas de espacio, se obviarán del código las guardas, los \textit{namespaces} y los comentarios, además de incluir la implementación de los métodos (ubicados en los archivos \emph{*.cpp} en lugar de \emph{*.h} como de costumbre). Si se quieren ver los archivos completos, véase el enlace del título de cada fragmento.\\
+
 \subsubsection{messages-definition}
 
 En el punto de implementación alcanzado a la hora de la entrega del proyecto no existen muchos mensajes, pero la librería se ha pensado de forma que sea sencillo añadir mensajes nuevos para los nuevos desarrolladores que quieran participar en ello y utilizar \textit{Lazarillo}.\\
 
-Para ilustrar este comportamiento, veremos dos clases: una \textbf{interfaz genérica} para todos los mensajes y una \textbf{clase objeto} de ejemplo que la implementa. Empecemos por la interfaz (por temas de espacio, se obvian del código las guardas y los comentarios. Si se quiere ver el archivo completo, véase el enlace adjunto en el título de cada fragmento):\\
+Para ilustrar este comportamiento, veremos dos clases: una \textbf{interfaz genérica} para todos los mensajes y una \textbf{clase objeto} de ejemplo que la implementa. Empecemos por la interfaz:\\
 
-\textbf{\textit{i\_base\_message.h} \cite{i-base-message}}
+\textbf{\textit{\href{https://github.com/adrianmorente/lazarillo-embedded/blob/master/messages-definition/inc/messages-definition/i_base_message.h}{i\_base\_message.h}}}
 \begin{lstlisting}
 class IBaseMessage : public serialization::Serializable
 {
@@ -360,7 +370,7 @@ return p_serializer.add("campo1").add("campo2").add("campo3");
 
 Veamos ahora un ejemplo de mensaje que implemente dicha interfaz. Usaremos la clase \textit{EventConnectionStatus}, que representa el mensaje que se envía del servicio \textbf{web-gateway} al resto de servicios cuando cambia la conexión por \textit{WebSocket} con el portal de administración:\\
 
-\textbf{\textit{event\_connection\_status.h}} \cite{event-connection-status}
+\textbf{\textit{\href{https://github.com/adrianmorente/lazarillo-embedded/blob/master/messages-definition/inc/messages-definition/event_connection_status.h}{event\_connection\_status.h}}}
 \begin{lstlisting}
 class EventConnectionStatus : public IBaseMessage
 {
@@ -388,30 +398,528 @@ private:
 };
 \end{lstlisting}
 
-Podemos ver que utilizando esta aproximación, el código necesario para crear un nuevo mensaje es bastante sencillo. Simplemente sobreescribe el nombre con el que se identificará al mensaje y especifica qué campos han de añadirse o leerse. La variable que se utiliza en cuestión (\emph{m\_status}) no es más que un enumerado con los posibles estados de la conexión.
+Podemos ver que utilizando esta aproximación, el código necesario para crear un nuevo mensaje es bastante sencillo. Simplemente sobreescribe el nombre con el que se identificará y especifica qué campos han de añadirse o leerse. La variable que se utiliza en cuestión (\emph{m\_status}) no es más que un enumerado con los posibles estados de la conexión (\emph{UNKNOWN}, \emph{CONNECTED}, \emph{NOT\_CONNECTED}).
 
 
 \subsubsection{service-base}
 
-Este módulo define el esqueleto abstracto de cada uno de los servicios del robot. Heredando el comportamiento de esta librería, cada uno de los nuevos servicios se ahorran procedimientos rutinarios como instanciar la conexión con la base de datos y el bróker de mensajería.
+Este módulo define el esqueleto abstracto de cada uno de los servicios del robot. Heredando el comportamiento de esta librería, cada uno de los nuevos servicios se ahorran procedimientos rutinarios como instanciar la conexión con la base de datos y el bróker de mensajería.\\
+
+Solamente contiene dos interfaces que aprovecharán el resto de módulos. Comentémoslas a continuación:\\
+
+\textbf{\textit{\href{https://github.com/adrianmorente/lazarillo-embedded/blob/master/service-base/inc/service-base/service_base.h}{service\_messager.h}}}
+\begin{lstlisting}
+class ServiceMessager
+{
+public:
+	ServiceMessager(std::shared_ptr<lzr::msg::Broker> p_broker, std::shared_ptr<messages::MessageFactory> p_message_factory, std::string const &p_service_name)
+	{
+		auto serialization = std::make_shared<lzr::msg::serialization::SerializationFactory>();
+		m_pub = lzr::msg::createMsgPublisher(p_broker, serialization, p_service_name);
+		m_sub = lzr::msg::createMsgSubscriber(p_broker, serialization, p_message_factory);
+	}
+	
+	bool publish(std::string const &p_topic, messages::IBaseMessage const &p_message)
+	{
+		return m_pub->publish(p_topic, p_message);
+	}
+
+	void subscribe(std::string const &p_topic, std::string const &p_message, std::shared_ptr<lzr::msg::IBaseMessageReceiver> p_receiver)
+	{
+		m_sub->subscribe(p_topic);
+		m_sub->add_receiver(p_message, p_receiver);
+	}
+	
+	auto get_pub() const { return m_pub; }
+	auto get_sub() const { return m_sub; }
+	
+private:
+	std::shared_ptr<lzr::msg::MsgPublisher> m_pub;
+	std::shared_ptr<lzr::msg::MsgSubscriber> m_sub;
+};
+\end{lstlisting}
+
+Esta es una clase auxiliar para \textit{ServiceBase} que envuelve las utilidades para publicar y suscribirse a mensajes fácilmente desde cualquier servicio. Utiliza dos objetos: \textit{MsgPublisher} y \textit{MsgSubscriber} que enlaza del módulo \textbf{messaging-broker} y que permite gestionar de forma sencilla la mensajería.\\
+
+El método para \textbf{publicar} (\textit{publish}) hace lo que se espera: simplemente enviar el mensaje. Sin embargo, el método \textbf{\textit{subscribe}}, además de suscribir el servicio correspondiente al tópico y mensaje de \textit{PubSub} especificado, asocia un \textit{callback} que será llamado cuando se publique dicho mensaje. Este \textbf{\textit{IBaseMessageReceiver}} es otra interfaz de \textit{messaging-broker} que define el comportamiento general de lo que se ha bautizado como \textit{message receivers}, y que simplemente implementan la lógica ejecutada cuando se recibe el mensaje esperado.\\
+
+\textbf{\textit{\href{https://github.com/adrianmorente/lazarillo-embedded/blob/master/service-base/inc/service-base/service_messager.h}{service\_base.h}}}
+\begin{lstlisting}
+class ServiceBase
+{
+public:
+	virtual std::string get_name() = 0;
+	virtual void init() = 0;
+	virtual int run_internal() = 0;
+	virtual void finish() = 0;
+	
+	int run()
+	{
+		// Abstract initialisation for communication
+		init_messaging();
+		
+		// Initialisation steps given by child class
+		init();
+		
+		std::cout << "Running service " << get_name() << std::endl;
+		sd_notify(0, "READY=1");
+		
+		auto exit_code = run_internal();
+		
+		std::cout << "Stopping service " << get_name() << std::endl;
+		sd_notify(0, "STOPPED=1");
+		
+		return exit_code;
+	}
+
+	bool publish(std::string const &p_topic, messages::IBaseMessage const &p_message)
+	{
+		return m_messager->publish(p_topic, p_message);
+	}
+
+	void subscribe(std::string const &p_topic, std::string const &p_message, std::shared_ptr<msg::IBaseMessageReceiver> p_receiver)
+	{
+		m_messager->subscribe(p_topic, p_message, p_receiver);
+	}
+	
+private:
+	void init_messaging()
+	{
+		auto broker = std::shared_ptr<lzr::msg::Broker>();
+		
+		constexpr auto CONNECTION_TIMEOUT{5s};
+		auto const connected = broker->connect_async(CONNECTION_TIMEOUT).get();
+		if (!connected)
+		{
+			throw std::runtime_error("Unable to connect to broker.");
+		}
+		
+		auto message_factory = std::make_shared<messages::MessageFactory>();
+		
+		m_messager = std::make_shared<lzr::service::ServiceMessager>(broker, message_factory, get_name());
+	}
+	
+	std::shared_ptr<ServiceMessager> m_messager;
+};
+\end{lstlisting}
+
+En esta clase abstracta \textit{ServiceBase} ocurre todo el comportamiento genérico que utilizamos en los servicios que realmente se ejecutan en el robot. Si miramos el método \textbf{\textit{run()}} distinguimos los siguientes pasos:
+
+\begin{itemize}
+	\item \textbf{init\_messaging()}: es un método privado que intenta realizar la conexión con el bróker de mensajería y compone los objetos de publicación/suscripción utilizando una \textbf{fábrica}, siguiendo el patrón de diseño \textbf{\textit{Factory Method}} \cite{factory-method}. Éste facilita la creación de objetos concretos a partir de una interfaz común.
+	\item \textbf{init()}: se trata de un método virtual que implementan las clases hijas para definir todo el comportamiento de inicialización que necesiten sus servicios.
+	\item Llamadas a \textbf{sd\_notify(...)}: es una función de la librería de \textit{Systemd} y se utiliza para avisar al sistema operativo del estado actual del servicio en cuestión.
+	\item \textbf{run\_internal}: otro método virtual para que los servicios herederos implementen el \textit{loop} de su funcionamiento real. 
+\end{itemize}
+
+Llegados aquí, pasemos al fin a ver uno de los servicios que se ejecutan en el robot, concretamente el que se muestra en la pantalla táctil con la que puede interactuar el usuario.\\
+
 
 \subsubsection{lazarillo-hmi}
 
-La tecnología usada por esta aplicación, se ha decidido que sea el framework de \textbf{\textit{Qt}}, que pese a tener modalidades de licencias de pago, permite un uso \textit{open source}. Además, se trata de una tecnología con una amplia comunidad, una documentación muy rica y un gran soporte para dispositivos embebidos. Por otro lado, dispongo de amplia experiencia con dicha herramienta, lo que agiliza enormemente el tiempo de desarrollo.
+Se trata de la aplicación que muestra la interfaz táctil al usuario. La tecnología usada por esta aplicación ha sido el framework de \textbf{\textit{Qt}}, que pese a tener modalidades de licencias de pago, permite un uso \textit{open source} \cite{qt-open-source}. Además, se trata de una tecnología con una amplia comunidad, una documentación muy rica y un gran soporte para dispositivos embebidos. De hecho, \textit{Qt} distribuye sus propios \textit{layers} para poder utilizarlos en \textit{Yocto} y así descargar automáticamente las librerías necesarias para nuestra aplicación.\\
 
-Se trata de la aplicación que muestra la interfaz táctil al usuario.
+Por otro lado, dispongo de amplia experiencia con dicha herramienta, lo que agiliza enormemente el tiempo de desarrollo. Utilizamos la versión \textbf{5.15.5} de la herramienta, versión \textit{LTS} y última de la versión \textit{major} número \textbf{5}. Si bien me habría gustado utilizar la \textbf{6}, que es la más novedosa y ya está en el mercado, me habría supuesto tener que ponerme a estudiar sobre ella y analizar todas las diferencias, lo cual requería un tiempo que no tenía.\\
+
+El \textit{framework} se compone a su vez de las librerías para \emph{C++} y un lenguaje para implementación de interfaces gráficas basado en \textit{JavaScript}, llamado \textbf{\textit{QML}}. Se puede obtener más información en su página web \cite{qt-qml}.
+
+Empecemos viendo el archivo \emph{CMakeLists.txt} con el que se describe lo necesario para poder compilar el servicio:\\
+
+\textbf{\textit{\href{https://github.com/adrianmorente/lazarillo-embedded/blob/master/lazarillo-hmi/CMakeLists.txt}{CMakeLists.txt}}}
+\begin{lstlisting}
+project(lazarillo-hmi VERSION 0.1 LANGUAGES CXX)
+
+set(_include_dir inc/lazarillo-hmi)
+set(TS_FILES i18n/lazarillo-hmi_es_ES.ts)
+
+set(PROJECT_SOURCES
+	${_include_dir}/utils/style.h
+	${_include_dir}/service.h
+	src/message_receivers/event_reboot_receiver.cpp
+	src/message_receivers/event_reboot_receiver.h  
+	src/utils/style.cpp
+	src/main.cpp
+	src/service.cpp
+	gui/qml.qrc
+	gui/img.qrc
+	${TS_FILES}
+)
+
+add_executable(${PROJECT_NAME} ${PROJECT_SOURCES})
+
+lzr_link_qt(${PROJECT_NAME})
+lzr_link_systemd(${PROJECT_NAME})
+
+qt5_create_translation(QM_FILES ${CMAKE_SOURCE_DIR} ${TS_FILES})
+
+target_include_directories(${PROJECT_NAME} PUBLIC inc)
+target_include_directories(${PROJECT_NAME} PRIVATE src)
+
+target_link_libraries(${PROJECT_NAME} PRIVATE
+	messages-definition
+	messaging-broker
+	serialization
+	service-base
+)
+\end{lstlisting}
+
+En la variable \emph{PROJECT\_SOURCES} se enumeran todos los ficheros fuente necesarios para el proyecto, tanto de \textit{C++} como de \textit{QML} (incluidos en ficheros del tipo \emph{.qrc}), que luego se pasan como parámetro a \emph{add\_executable} para generar el binario de ejecución.\\
+
+Las funciones \emph{lzr\_link\_qt} y \emph{lzr\_link\_systemd} utilizan el archivo \href{https://github.com/adrianmorente/lazarillo-embedded/blob/master/cmake/ProjectSetup.cmake}{cmake/ProjectSetup.cmake} para enlazar con las librerías de \textit{Qt} y \textit{Systemd}, de forma similar a lo que se hace en \emph{target\_link\_libraries} pero con los módulos internos del proyecto.\\
+
+Pasemos ahora a ver código de la parte lógica en \textit{C++} y la interfaz gráfica en \textit{QML}. Empezaremos por ver el código que inicializa el servicio y lanza la interfaz, aprovechando para ilustrar sobre el uso de la clase abstracta \textbf{\textit{ServiceBase}} explicado previamente:\\
+
+\textbf{\textit{\href{https://github.com/adrianmorente/lazarillo-embedded/blob/master/lazarillo-hmi/inc/lazarillo-hmi/service.h}{service.h}}}
+\begin{lstlisting}
+class Service : public lzr::service::ServiceBase
+{
+public:
+	Service(int argc, char *argv[])
+	{
+		m_app = new QGuiApplication(argc, argv);
+		m_app->setOrganizationName("Adrian Morente");
+
+		QTranslator translator;
+		const QStringList uiLanguages = QLocale::system().uiLanguages();
+		for (const QString &locale : uiLanguages)
+		{
+			if (translator.load(":/i18n/" + "lazarillo-hmi_" + QLocale(locale).name()))
+			{
+				m_app->installTranslator(&translator);
+				break;
+			}
+		}
+		
+		qmlRegisterUncreatableType<Style>("lazarillo.utils", 1, 0, "Style", "Style enum type not creatable.");
+		qRegisterMetaType<const Style *>("const Style");
+	}
+
+	~Service() { delete m_app; }
+	
+	std::string get_name() override { return "lazarillo-hmi"; }
+	
+	void init() override
+	{
+		auto event_reboot_receiver = std::make_shared<lzr::hmi::EventRebootReceiver>();
+		subscribe(WEB_GATEWAY_EVENT_TOPIC, messages::EventReboot::NAME, event_reboot_receiver);
+	}
+	
+	int run_internal() override
+	{
+		QQmlApplicationEngine engine;
+		engine.addImportPath(":/");
+		
+		Style style;
+		style.changeSkin();
+		engine.rootContext()->setContextProperty("style", &style);
+		
+		// Finally create QML window
+		const QUrl url(QStringLiteral("qrc:/main.qml"));
+		QObject::connect( &engine, &QQmlApplicationEngine::objectCreated, m_app,
+			[url](QObject *obj, const QUrl &objUrl)
+			{
+				if (!obj && url == objUrl)
+				QCoreApplication::exit(-1);
+			}, Qt::QueuedConnection);
+		engine.load(url);
+		
+		return m_app->exec();
+	}
+
+private:
+	QGuiApplication *m_app;
+};
+\end{lstlisting}
+
+Esta clase \textit{Service} instancia un objeto del tipo \textit{QGuiApplication}, que es uno de los que provee \textit{Qt} para utilizar aplicaciones mostradas en una ventana. En el constructor inicializa la aplicación, instala los archivos de traducciones (para poder mostrar la aplicación embebida en distintos idiomas), y expone el tipo \emph{Style} de C++ a QML para poder ser usado allí.\\
+
+El método \emph{get\_name()} informa al servicio abstracto sobre el nombre de esta aplicación (que se usa en la interfaz para mostrar \textit{logs} así como para el envío de mensajes a \textit{PubSub}).\\
+
+En \emph{init\_internal()}, método sobreescrito de la interfaz, se inicializa el \textbf{\textit{receptor de mensaje}} para \emph{EventReboot}. Como hemos explicado antes, estos receptores implementan un comportamiento específico que se ejecuta cuando se recibe el mensaje esperado en el tópico suscrito. En este caso, este receptor simplemente reinicia el dispositivo, lo que puede ser interesante realizar desde el portal web.\\
+
+Y para terminar, \emph{run\_internal()} implementa el método abstracto que vimos en \textbf{\textit{service-base}} que se llama en el \textit{loop} del servicio. Lo que hace es cargar un motor de QML con el código situado en \emph{main.qml} (que implementa la interfaz), asignarlo al objeto \emph{m\_app} visto antes y lanzar la aplicación.\\
+
+Utilizando así el servicio base, el programa \textit{main} de todos los servicios queda tan limpio como se ve a continuación:\\
+
+\textbf{\textit{\href{https://github.com/adrianmorente/lazarillo-embedded/blob/master/lazarillo-hmi/src/main.cpp}{main.cpp}}} 
+\begin{lstlisting}
+#include "lazarillo-hmi/service.h"
+
+int main(int argc, char *argv[])
+{
+	lzr::hmi::Service service(argc, argv);
+	return service.run();
+}
+\end{lstlisting}
+
+Simplemente carga el objeto \emph{Service} visto arriba y llama al método \emph{run()} de la clase heredada para aprovechar la inicialización de la mensajería.\\
+
+Para terminar con los servicios embebidos en el robot, veamos ahora el que provee el servidor \textit{WebSocket} al que se conecta el portal web.\\
 
 \subsubsection{web-gateway}
 
-Este servicio es el \textit{puerto de entrada} a Lazarillo. Realiza la comunicación mediante \textit{Websockets} con \textbf{\textit{lazarillo-admin}}, el portal web a través del cual un técnico puede administrar los distintos robots. \textit{\textbf{Web-gateway}} actúa como intérprete de los mensajes provenientes del \textit{socket} y los publica en la mensajería interna del robot (basada en \textit{Redis}) para informar al resto de servicios de cualquier acción emitida por el servidor.
+Este servicio es el \textit{puerto de entrada} a \textit{Lazarillo} para la comunicación con el exterior. Como hemos dicho reiteradamente, realiza la comunicación mediante \textit{WebSockets} con \textbf{\textit{lazarillo-admin-frontend}} habilitando un servidor al efecto, el portal web a través del cual un técnico puede administrar los distintos robots. Actúa como intérprete de los mensajes provenientes del \textit{socket} y los publica en la mensajería interna del robot (basada en \textit{Redis}) para informar al resto de servicios de cualquier acción emitida por el servidor.\\
 
+Además, como la comunicación basada en \textit{WebSockets} es bidireccional y el canal siempre se mantiene activo, puede enviar mensajes al servidor en cualquier momento.\\
+
+Dado que el fichero \textbf{\textit{\href{https://github.com/adrianmorente/lazarillo-embedded/blob/master/web-gateway/CMakeLists.txt}{CMakeLists.txt}}} de este módulo sigue una estructura igual al de \textbf{\textit{lazarillo-hmi}} cambiando solo el nombre del proyecto y los ficheros fuente incluidos, nos ahorraremos la explicación, ya que no veremos nada nuevo.\\
+
+En cuanto al archivo \textbf{\textit{\href{https://github.com/adrianmorente/lazarillo-embedded/blob/master/web-gateway/src/main.cpp}{main.cpp}}} que se ejecuta por defecto en el servicio, el código también es igual al de \textit{lazarillo-hmi}, con la salvedad de que esta vez la clase \emph{Service} (utilizada para sobreescribir la de \emph{IBaseService}) es la implementación realizada por \textit{web-gateway}. La única diferencia con respecto al servicio anterior reside en la inicialización, y es que al ser una aplicación sin interfaz gráfica que solo se ejecuta en segundo plano esperando solicitudes, solamente instancia un objeto del tipo propio \textbf{\textit{WebsocketServer}}. Veamos dicha clase:\\
+
+\textbf{\textit{\href{https://github.com/adrianmorente/lazarillo-embedded/blob/master/web-gateway/inc/web-gateway.h}{websocket\_server.h}}}
+\begin{lstlisting}
+class WebsocketServer : public QObject
+{
+	Q_OBJECT
+	
+public:
+	explicit WebsocketServer(const int p_port  = 8080, QObject *p_parent = nullptr)
+		: QObject{p_parent}, m_socket(new QWebSocketServer(QStringLiteral("Lazarillo WS Server"),
+		QWebSocketServer::NonSecureMode, this))
+	{
+		if (m_socket->listen(QHostAddress::Any, p_port))
+		{
+			qDebug() << "Listening on port: " << p_port;
+			
+			connect(m_socket, &QWebSocketServer::newConnection, this, &WebsocketServer::onNewConnection);
+			connect(m_socket, &QWebSocketServer::closed, this, &WebsocketServer::closed);
+		}
+	}
+	
+private slots:
+	void onNewConnection()
+	{
+		QWebSocket *client = m_socket->nextPendingConnection();
+		
+		connect(client, &QWebSocket::textMessageReceived, this, &WebsocketServer::processTextMessage);
+		connect(client, &QWebSocket::binaryMessageReceived, this, &WebsocketServer::processBinaryMessage);
+		connect(client, &QWebSocket::disconnected, this, &WebsocketServer::socketDisconnected);
+		
+		qDebug() << "Client connected.";
+		client->sendTextMessage(QString::fromUtf8("Connection accepted from Websocket server"));
+	}
+
+	void processTextMessage(QString message)
+	qDebug() << "Text message received: " << p_message;
+	
+	// parse and publish message to other services in web's topic
+	if (p_message == "REBOOT")
+	{
+		m_service->publish(messages::topics::WEB_GATEWAY_EVENT_TOPIC,
+		messages::EventReboot{});
+	}
+	else if (p_message == "OTHER_ACTION")
+	{
+		// send other message related to OTHER_ACTION
+	}
+
+	void socketDisconnected() { qDebug() << "Client disconnected."; }
+	
+signals:
+	void closed();
+	
+private:
+	// Socket that holds the actual connection
+	QWebSocketServer *m_socket;
+};
+\end{lstlisting}
+
+La clase solo contiene un objeto interno: un \textbf{\textit{socket}} para el servidor mencionado antes. Se inicializa en el constructor, comienza a escuchar peticiones provenientes de cualquier origen y se conectan las señales \emph{newConnection} y \emph{closed} del \textit{socket} interno a los métodos \emph{onNewConnection} y \emph{closed} respectivamente.\\
+
+\begin{itemize}
+	\item \textbf{\textit{onNewConnection}}: para cada señal de nueva conexión al servidor, se instancia un nuevo objeto \emph{QWebSocket} que hace referencia al cliente y se conectan las señales necesarias para cada evento de mensaje por su parte o desconexión. Estos mensajes se procesan en el método \textbf{\textit{processTextMessage}} para parsearlos y enviarlos internamente a través del bróker de mensajería ya descrito extensamente.
+	\item \textbf{\textit{closed}}: se ejecuta al recibir la señal del cliente al cerrar la conexión. Simplemente muestra un mensaje, pero podría también enviar notificaciones internas para que el resto de servicios sean conscientes (aunque en principio no debería ser de interés).
+\end{itemize}
+
+Éste es realmente todo el comportamiento del servicio. Es bastante sencillo ya que se sigue el objetivo de que los módulos cumplan \textbf{una sola responsabilidad}.\\
+
+Ahora bien, \textit{salgamos del robot} y del software embebido y pasemos a ver los servicios web externos.\\
+
+
+\subsection{lazarillo-admin-backend}
+
+Para volver a situarnos, véase la imagen \ref{lazarillo-architecture} que muestra el diagrama de la arquitectura de todo el ecosistema. Esta vez hablaremos del servicio que hace las veces de \textbf{Intermediario}.\\
+
+El objetivo que persigue es muy simple: facilitar a \textbf{\textit{lazarillo-admin-frontend}} el descubrimiento de los robots que puede gestionar. Respecto a esto, podría llegar la pregunta de ``¿Por qué es necesario que un robot se exponga como posible servidor para que el cliente se conecte? ¿No es más fácil fijar directamente la \textit{URL} del robot (o lista de robots) en el servicio cliente y así siempre estará conectado?''. La respuesta corta es: \textbf{por escalabilidad} (otra vez). Para la respuesta larga necesitamos más párrafos.\\
+
+Cuando estamos realizando pruebas en nuestra máquina, donde la \textit{URL} suele ser \textit{localhost} y todos los servicios se ejecutan en el mismo sistema, es muy fácil interconectarlos. Sin embargo, en el mundo real las cosas no funcionan así: los robots se desplegarán físicamente por la universidad, el portal web se proporcionará desde un servidor externo y el administrador podría querer acceder a él desde su teléfono conectado a la red móvil.\\
+
+Teniendo esto en cuenta, viene bien pensar en que sea el robot el que se exponga enviando a un pequeño servidor aparte la \textit{URL} en la que el robot está disponible, para lo cual es necesario que la dirección de dicho servidor \textbf{sí} sea fija, o podría implementarse un método para modificarla a través de la pantalla táctil que incluye. El aspecto de que la dirección sea fija es fácil de solucionar desplegando el servicio en cualquier alojamiento al que se redirija a través de un nombre de dominio.\\
+
+De esta forma, el portal web (\textit{frontend}) obtiene periódicamente la lista de robots que han expuesto su dirección en el servidor mencionado y acto seguido, puede iniciar la conexión con ellos. Veamos la lógica implementada para satisfacer esto:\\
+
+\subsubsection{Generalidades del servicio}
+
+Como se ha adelantado, la implementación se ha realizado en el lenguaje \textit{Python} en su versión 3, haciendo uso de la librería \textbf{\textit{Flask}} \cite{flask} la cual permite crear servidores web de forma rápida y sencilla. Además, se ha utilizado la herramienta \textit{Docker} para crear pequeños contenedores donde ejecutar la aplicación para hacer pruebas en local.\\
+
+Por otro lado, para asegurar la \textbf{persistencia de los datos} utilizamos \textbf{\textit{MongoDB}} \cite{mongodb}, una base de datos no relacional que permite trabajar en formato \textit{Json}, el cual es muy fácil de compartir con cualquier componente software. Además no requiere apenas configuración para empezar a usarse, por lo que es muy sencillo para pruebas rápidas.\\
+
+Si observamos la estructura del proyecto en \href{https://github.com/adrianmorente/lazarillo-admin-backend}{el repositorio}, distinguimos varios elementos importantes:
+
+\begin{itemize}
+	\item \textbf{\textit{app/}}: directorio que contiene el código de la aplicación, el fichero de dependencias de \textit{Python} (\textit{requirements.txt}), y un archivo \textit{Dockerfile} que comentaremos posteriormente.
+	\item \textbf{\textit{mongodb/}}: tan solo contiene un \textit{Dockerfile} para crear un contenedor donde utilizar la base de datos, además de un simple script para configuración en el momento de la creación de dicho contenedor.
+	\item \textit{docker-compose.yml}: se trata de un formato de fichero concreto para la herramienta \textit{Docker Compose} \cite{docker-compose}, la cual permite gestionar varios contenedores a la vez.
+\end{itemize}
+
+Gracias al uso de \textit{Docker Compose}, con un simple comando \textit{``docker-compose up''} podemos lanzar un contenedor para la aplicación en \textit{Python} y otro para el servidor de base de datos (\textit{MongoDB}) y comunicarlos entre sí para que el segundo sirva al primero. Veamos el código de configuración utilizado (se omiten algunos campos):
+
+\textbf{\textit{\href{https://github.com/adrianmorente/lazarillo-admin-backend/blob/main/docker-compose.yml}{docker-compose.yml}}}
+\begin{lstlisting}
+version: '3'
+
+services:
+	lazarillo_flask_backend:
+		build:
+			context: app
+			dockerfile: Dockerfile
+		image: lazarillo_flask_backend
+		container_name: lazarillo_flask_backend
+		environment:
+			MONGODB_DATABASE: lazarillo
+			MONGODB_USERNAME: mongouser
+			MONGODB_PASSWORD: mongo_password
+			MONGODB_HOSTNAME: lazarillo_mongodb_backend
+		ports:
+			- "5000:5000"
+		depends_on:
+			- lazarillo_mongodb_backend
+		networks:
+			- backend
+
+	lazarillo_mongodb_backend:
+		build:
+			context: mongodb
+			dockerfile: Dockerfile
+		image: lazarillo_mongodb_backend
+		container_name: lazarillo_mongodb_backend
+		command: mongod --auth
+		environment:
+			MONGO_INITDB_ROOT_USERNAME: mongouser
+			MONGO_INITDB_ROOT_PASSWORD: mongo_password
+			MONGO_INITDB_DATABASE: lazarillo
+		networks:
+			- backend
+
+networks:
+	backend:
+		driver: bridge
+\end{lstlisting}
+
+La configuración fija la versión de \textit{Docker Compose} que se utiliza, lista los servicios que se quieren desplegar y las redes utilizadas para comunicarlos. Si bajamos un nivel de indentación dentro de cada servicio (\textit{lazarillo\_flask\_backend} por un lado y \textit{lazarillo\_mongodb\_backend} por otro), con \emph{build/context/dockerfile} se especifica en qué directorio ha de buscarse el archivo \textit{Dockerfile} para extraer la imagen del servicio en cuestión.\\
+
+Con \emph{image} y \emph{container\_name} se especifica el nombre con que se guardarán tanto la imagen de sistema como el contenedor creado. \emph{environment} contiene variables de entorno que se crean con el valor asignado una vez que el contenedor resultante se inicia. En ambos servicios se establece la misma \textit{network} (red) para que puedan comunicarse entre ellos e intercambiar información.\\
+
+El resultado de descargar y construir las imágenes y ejecutarlas en contenedores se puede ver en la figura \ref{docker-compose-build}.\\
+
+\begin{figure}[h]
+	\centering
+	\includegraphics[width=0.75\textwidth]{imagenes/docker-compose-build.png}
+	\caption{Captura de pantalla del comando de creación y ejecución de la imagen basada en \textit{docker-compose}.}
+	\label{docker-compose-build}
+\end{figure}
+
+Una vez visto esto, pasemos al código en \textit{Python} que recibe las peticiones (se obvian por ahora las funciones para explicarlas de forma más cómoda en el punto siguiente):\\
+
+\textbf{\textit{\href{https://github.com/adrianmorente/lazarillo-admin-backend/blob/main/app/app.py}{app/app.py}}}
+\begin{lstlisting}
+# Create app and connect to database
+application = Flask(__name__)
+application.config["MONGO_URI"] = 'mongodb://' + \
+	os.environ['MONGODB_USERNAME'] + ':' + os.environ['MONGODB_PASSWORD'] + \
+	'@' + os.environ['MONGODB_HOSTNAME'] + \
+	':27017/' + os.environ['MONGODB_DATABASE']
+
+mongo = PyMongo(application)
+db = mongo.db
+
+
+# Route to listen to broadcast messages from Lazarillo devices exposing their Websocket server
+@application.route("/broadcast", methods=['POST'])
+def read_device_broadcast():
+	# code
+
+
+# Route to receive the devices that exposed their WS server
+@application.route("/devices", methods=['GET'])
+def send_devices():
+	# code
+
+
+if __name__ == "__main__":
+	ENVIRONMENT_DEBUG = os.environ.get("APP_DEBUG", True)
+	ENVIRONMENT_PORT = os.environ.get("APP_PORT", 5000)
+	application.run(host='0.0.0.0', port=ENVIRONMENT_PORT, debug=ENVIRONMENT_DEBUG)
+\end{lstlisting}
+
+El código básicamente inicializa la conexión al servicio de base de datos utilizando las variables de entorno que habíamos configurado en el fichero \textit{docker-compose.yml} que vimos antes. Ese objeto \emph{db} se utiliza en las rutas que describiremos a continuación. Acto seguido, al final del código, se lanza la aplicación para que empiece a escuchar peticiones.\\
+
+\subsubsection{Rutas de acceso}
+
+La aplicación solo contempla dos rutas para recibir peticiones. La primera es \textbf{\textit{/broadcast}} y solo acepta el método \textbf{\textit{POST}} para escribir nuevos datos. Ésta es la ruta a la que llaman los robots para exponer sus datos y dirección de conexión, implementando la mecánica que explicamos en la sección anterior.\\
+
+\begin{lstlisting}
+@application.route("/broadcast", methods=['POST'])
+def read_device_broadcast():
+	"""Read parameters from device and store them into db"""
+	name = request.form.get('name')
+	version = request.form.get('version')
+	address = request.form.get('address')
+	
+	# add device to list of websocket servers
+	db.devices.insert_one({
+		'name': name,
+		'version': version,
+		'address': address
+	})
+	return jsonify(message='success'), 201
+\end{lstlisting}
+
+Al recibir una llamada a \textbf{\textit{/broadcast}}, se leen los campos ``nombre'', ``versión'' y ``dirección'' de los parámetros especificados. Estos se componen en un documento con ``\textit{clave: valor}'' y se insertan en la base de datos llamada \emph{devices} usando el objeto \textit{db} antes creado y la función \emph{insert\_one(\{\})} para escribir un documento nuevo.\\
+
+
+\begin{lstlisting}
+@application.route("/devices", methods=['GET'])
+def send_devices():
+	"""Retrieve devices from database and send them as JSON"""
+	device = {}
+	response = []
+	
+	for item in db.devices.find():
+	device = {
+		'id': item['_id'].__str__(),
+		'name': item['name'],
+		'version': item['version'],
+		'address': item['address']
+	}
+	response.append(device)
+	
+	return jsonify(status=True, data=response)
+\end{lstlisting}
+
+Por otro lado, la ruta \textbf{\textit{/devices}} solo recibe métodos \textbf{\textit{GET}} para lectura. De forma inversa a la escritura, lo que se hace aquí es leer \textbf{todas las entradas} de la base de datos con el método \textbf{\textit{find()}}. Todos los documentos leídos se incluyen en un \textit{array} y se envían al solicitante.\\
+
+En este caso el que realiza la llamada aquí es el servicio \textbf{\textit{lazarillo-admin-frontend}} y así consigue leer los robots que existen y a los que puede conectarse para su correcta gestión.\\
+
+Para terminar, comprobamos que nuestra aplicación se está ejecutando correctamente para esperar peticiones (ahora mismo se ejecutan en la máquina local utilizando la aplicación de escritorio de \textit{Docker}), véase la figura \ref{docker-run}. Se puede apreciar que el servidor web expone el puerto \textbf{5000} para escuchar ahí las peticiones.\\
+
+\begin{figure}[h]
+	\centering
+	\includegraphics[width=0.75\textwidth]{imagenes/docker-run.png}
+	\caption{Captura de pantalla de \textit{Docker Desktop} mostrando los dos contenedores del servidor web y la base de datos en ejecución.}
+	\label{docker-run}
+\end{figure}
 
 
 \subsection{lazarillo-admin-frontend}
-\subsection{lazarillo-admin-backend}
 
-Como venimos comentando, además del software embebido en el robot, disponemos de otros módulos externos a él que completan la plataforma.
 
-Este es el título asignado al servicio web que tanto venimos comentando a lo largo de este documento, a través del cual podemos visualizar y gestionar los distintos robots conectados al servidor.\\
 
-Está programado con \textit{NodeJS} (TODO: ref a node) y utiliza librerías para hacer las veces de servidor con \textit{HTTPS} (para la web) y con \textit{Websockets} (para la comunicación con el robot).\\
+
+
+
+
+
+
+
+
